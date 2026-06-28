@@ -7,6 +7,8 @@
 | Resource Group | rg-scheduling-optimizer | koreacentral | - | 생성됨 |
 | Container Registry | acrschedulingopt (acrschedulingopt.azurecr.io) | koreacentral | Basic | 생성됨 |
 | PostgreSQL Flexible Server | psql-scheduling-optimizer (psql-scheduling-optimizer.postgres.database.azure.com) | koreacentral | Burstable B1ms, 32GiB, v16 | 생성됨 |
+| Container Apps Environment | env-scheduling-optimizer | koreacentral | Consumption | 생성됨 |
+| Container App (backend) | ca-scheduling-backend | koreacentral | 0.25vCPU/0.5GiB, min0/max1 | 생성됨, Running |
 
 ---
 
@@ -31,3 +33,11 @@
 - **애플리케이션 DB 생성**: `az postgres flexible-server db create --name scheduling_optimizer` 실행, 성공 (UTF8/en_US.utf8)
 - **Backend 이미지 빌드 & ACR push**: `az acr build --registry acrschedulingopt --image scheduling-backend:v1 --image scheduling-backend:latest ./backend` 실행, 성공 (Run ID: de1, 37초 소요). 로컬 docker login 불필요 (ACR Tasks로 클라우드 빌드)
   - 이미지: `acrschedulingopt.azurecr.io/scheduling-backend:v1` / `:latest`, digest sha256:0c262fcf...
+- **CLI extension/provider 준비**: `az extension add --name containerapp --upgrade` 설치, `Microsoft.App` / `Microsoft.OperationalInsights` provider 등록 완료
+- **Container Apps Environment 생성**: `az containerapp env create --name env-scheduling-optimizer --resource-group rg-scheduling-optimizer --location koreacentral` 실행, 성공. Log Analytics workspace 자동 생성됨 (workspace-rgschedulingoptimizer7tkl). Static IP: 4.230.97.71
+- **Container App(backend) 생성**: `az containerapp create --name ca-scheduling-backend --image acrschedulingopt.azurecr.io/scheduling-backend:v1 --registry-identity system --target-port 8000 --ingress external --cpu 0.25 --memory 0.5Gi --min-replicas 0 --max-replicas 1` 실행, 성공
+  - System-assigned managed identity로 ACR pull 권한 자동 부여 (별도 자격증명 불필요)
+  - 환경변수 DATABASE_URL 주입 (PostgreSQL 연결)
+  - 공개 URL: https://ca-scheduling-backend.ambitiousdune-51dd5b07.koreacentral.azurecontainerapps.io/
+  - 동작 확인: `curl .../docs` → HTTP 200 (FastAPI 정상 기동)
+  - ⚠️ Consumption plan은 outbound IP가 다수(150+개) 동적 할당되어 PostgreSQL 방화벽을 특정 IP로 좁히기 어려움 → "Allow Azure services" 룰로 전환 검토 필요 (현재는 임시로 전체 IP 허용 유지 중)
