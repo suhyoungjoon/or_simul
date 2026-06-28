@@ -4,7 +4,7 @@
 
 | 리소스 | 이름 | 리전 | SKU/Tier | 상태 |
 |---|---|---|---|---|
-| Resource Group | (생성 예정) | - | - | - |
+| Resource Group | rg-scheduling-optimizer | koreacentral | - | 생성됨 |
 
 ---
 
@@ -17,3 +17,4 @@
   - 참고: 다른 테넌트 'Contoso 랩'(26e076b7-...)는 비활성으로 차단되어 로그인 실패 (무시, 영향 없음)
   - 사용할 구독으로 `Pay-As-You-Go` 선택 → `az account set --subscription 56d01583-7b34-4be7-84c5-477e86bfdb18` 실행, 성공
 - **리소스 그룹/리전 결정**: `rg-scheduling-optimizer` / `koreacentral` 로 확정 (사용자 확인)
+- **리소스 그룹 생성**: `az group create --name rg-scheduling-optimizer --location koreacentral` 실행, 성공
