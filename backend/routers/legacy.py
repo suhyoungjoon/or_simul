@@ -25,6 +25,11 @@ def lookup_order(req: LookupRequest, db: Session = Depends(get_db)):
     except LegacyClientError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
+    if "id" not in order or "name" not in order:
+        raise HTTPException(
+            status_code=503, detail="legacy response missing required fields"
+        )
+
     customer = Customer(
         id=order["id"],
         name=order["name"],
