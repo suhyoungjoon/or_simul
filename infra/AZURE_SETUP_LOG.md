@@ -6,6 +6,7 @@
 |---|---|---|---|---|
 | Resource Group | rg-scheduling-optimizer | koreacentral | - | 생성됨 |
 | Container Registry | acrschedulingopt (acrschedulingopt.azurecr.io) | koreacentral | Basic | 생성됨 |
+| PostgreSQL Flexible Server | psql-scheduling-optimizer (psql-scheduling-optimizer.postgres.database.azure.com) | koreacentral | Burstable B1ms, 32GiB, v16 | 생성됨 |
 
 ---
 
@@ -22,3 +23,9 @@
 - **Resource Provider 등록**: `Microsoft.ContainerRegistry` 미등록 상태였음 → `az provider register --namespace Microsoft.ContainerRegistry --wait` 실행, Registered 확인
 - **ACR 생성**: `az acr create --resource-group rg-scheduling-optimizer --name acrschedulingopt --sku Basic --location koreacentral` 실행, 성공. Login server: acrschedulingopt.azurecr.io
 - **PostgreSQL Flexible Server 보류**: 비용 문의 후, 지금은 클라우드 DB를 생성하지 않고 로컬 Docker Postgres로 개발 진행하기로 결정. 배포 단계에서 다시 생성 검토.
+- **로컬 DB의 원격 접근 불가 이슈 확인**: 실제 배포 시 Container Apps에서 로컬 Docker DB에 접근할 수 없음을 확인 → 클라우드 PostgreSQL 즉시 생성으로 결정 전환
+- **Resource Provider 등록**: `Microsoft.DBforPostgreSQL` 미등록 → `az provider register --namespace Microsoft.DBforPostgreSQL --wait` 실행, Registered 확인
+- **PostgreSQL Flexible Server 생성**: `az postgres flexible-server create --resource-group rg-scheduling-optimizer --name psql-scheduling-optimizer --location koreacentral --admin-user schedadmin --sku-name Standard_B1ms --tier Burstable --storage-size 32 --version 16 --public-access 0.0.0.0-255.255.255.255` 실행, 성공. FQDN: psql-scheduling-optimizer.postgres.database.azure.com
+  - ⚠️ 공개 접근(0.0.0.0-255.255.255.255)으로 임시 설정 — 운영 전 Container Apps outbound IP로 방화벽 규칙 좁혀야 함
+  - 관리자 계정: schedadmin / 비밀번호는 랜덤 생성, 로컬 `.env`(gitignore 처리됨)에 저장
+- **애플리케이션 DB 생성**: `az postgres flexible-server db create --name scheduling_optimizer` 실행, 성공 (UTF8/en_US.utf8)
