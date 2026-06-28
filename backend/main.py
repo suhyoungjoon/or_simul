@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
+from prometheus_fastapi_instrumentator import Instrumentator
 import math, random, time
 
 app = FastAPI(title="Scheduling Optimizer API")
@@ -12,6 +13,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 # ── 스키마 ──────────────────────────────────────────────
 class Worker(BaseModel):

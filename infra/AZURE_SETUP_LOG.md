@@ -49,3 +49,7 @@
   - 동작 확인: `curl https://agreeable-river-0e656e000.7.azurestaticapps.net/` → HTTP 200
   - 배포 토큰은 임시 파일에 저장 후 사용 즉시 삭제, 저장소에는 커밋되지 않음
   - 참고: Bitbucket 저장소와 직접 연동되지 않은 1회성 CLI 배포. GitHub/Azure DevOps 연동 CI/CD는 미설정 상태
+
+### 2026-06-28 (모니터링: Prometheus + Grafana + Loki 구축 착수)
+- **사용자 결정사항 확정**: Container App 이름 ca-prometheus/ca-grafana/ca-loki, Loki+Promtail까지 1단계에 포함, 데이터는 ephemeral storage 허용(영속화 안 함), Grafana는 admin+랜덤 비밀번호만 사용(추가 보안 설정 없음), 리소스 스펙은 backend와 동일(0.25vCPU/0.5GiB, min0/max1)
+- **Backend에 /metrics 엔드포인트 추가**: `prometheus-fastapi-instrumentator==7.0.0`을 `backend/requirements.txt`에 추가, `backend/main.py`에 `Instrumentator().instrument(app).expose(app, endpoint="/metrics")` 적용
