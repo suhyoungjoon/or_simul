@@ -1,0 +1,45 @@
+# bitbucket-pipelines.yml
+# Bitbucket → AWS ECS (백엔드) + S3/CloudFront (프론트엔드) 자동 배포
+
+image: python:3.11
+
+pipelines:
+  branches:
+    main:
+      - step:
+          name: "Backend — Build & Push to ECR"
+          services: [docker]
+          script:
+            - pip install awscli
+            - aws ecr get-login-password --region ap-northeast-2
+                | docker login --username AWS --password-stdin
+                  $AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com
+            - docker build -t scheduling-optimizer-api ./backend
+            - docker tag scheduling-optimizer-api:latest
+                $AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com/scheduling-optimizer-api:latest
+            - docker push
+                $AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com/scheduling-optimizer-api:latest
+            - aws ecs update-service
+                --cluster scheduling-cluster
+                --service scheduling-api-service
+                --force-new-deployment
+                --region ap-northeast-2
+
+      - step:
+          name: "Frontend — Build & Deploy to S3"
+          image: node:20
+          script:
+            - cd frontend
+            - npm ci
+            - echo "VITE_API_URL=$VITE_API_URL" > .env
+            - npm run build
+            - pip install awscli
+            - aws s3 sync dist/ s3://$S3_BUCKET_NAME --delete
+            - aws cloudfront create-invalidation
+                --distribution-id $CF_DISTRIBUTION_ID
+                --paths "/*"
+
+# Bitbucket 환경변수 (Repository Settings → Repository variables):
+# AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+# AWS_ACCOUNT_ID, S3_BUCKET_NAME, CF_DISTRIBUTION_ID
+# VITE_API_URL (예: https://api.your-domain.com)
