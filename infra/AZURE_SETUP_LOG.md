@@ -21,3 +21,4 @@
 - **리소스 그룹 생성**: `az group create --name rg-scheduling-optimizer --location koreacentral` 실행, 성공
 - **Resource Provider 등록**: `Microsoft.ContainerRegistry` 미등록 상태였음 → `az provider register --namespace Microsoft.ContainerRegistry --wait` 실행, Registered 확인
 - **ACR 생성**: `az acr create --resource-group rg-scheduling-optimizer --name acrschedulingopt --sku Basic --location koreacentral` 실행, 성공. Login server: acrschedulingopt.azurecr.io
+- **PostgreSQL Flexible Server 보류**: 비용 문의 후, 지금은 클라우드 DB를 생성하지 않고 로컬 Docker Postgres로 개발 진행하기로 결정. 배포 단계에서 다시 생성 검토.
