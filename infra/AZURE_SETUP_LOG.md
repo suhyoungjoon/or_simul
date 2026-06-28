@@ -29,3 +29,5 @@
   - ⚠️ 공개 접근(0.0.0.0-255.255.255.255)으로 임시 설정 — 운영 전 Container Apps outbound IP로 방화벽 규칙 좁혀야 함
   - 관리자 계정: schedadmin / 비밀번호는 랜덤 생성, 로컬 `.env`(gitignore 처리됨)에 저장
 - **애플리케이션 DB 생성**: `az postgres flexible-server db create --name scheduling_optimizer` 실행, 성공 (UTF8/en_US.utf8)
+- **Backend 이미지 빌드 & ACR push**: `az acr build --registry acrschedulingopt --image scheduling-backend:v1 --image scheduling-backend:latest ./backend` 실행, 성공 (Run ID: de1, 37초 소요). 로컬 docker login 불필요 (ACR Tasks로 클라우드 빌드)
+  - 이미지: `acrschedulingopt.azurecr.io/scheduling-backend:v1` / `:latest`, digest sha256:0c262fcf...
