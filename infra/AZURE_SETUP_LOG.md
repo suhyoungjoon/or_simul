@@ -74,3 +74,10 @@
 - 기본 대시보드 "Scheduling Backend Overview" 자동 프로비저닝: 요청률(req/s), p95 응답시간, 5xx 에러율, 백엔드 로그 패널
 - 남은 작업(후속 단계로 보류): Grafana 알람 규칙 미설정, 데이터 영속화(Azure Files) 미적용(ephemeral storage 사용 중 — 재시작 시 메트릭/로그 유실), PostgreSQL 방화벽 IP 제한 미적용(여전히 전체 IP 허용 임시 상태)
 - Grafana 접속: https://ca-grafana.ambitiousdune-51dd5b07.koreacentral.azurecontainerapps.io (admin / 비밀번호는 로컬 `.env`의 `GRAFANA_ADMIN_PASSWORD` 참조)
+
+### 2026-06-28 (Grafana 비밀번호 변경 — 사용자 요청)
+- 사용자 요청으로 Grafana admin 비밀번호를 랜덤 생성값에서 `admin1234`로 고정 변경
+- `az containerapp secret set --name ca-grafana --secrets grafana-admin-password=admin1234` 실행, 성공. `az containerapp revision restart`로 재시작(ephemeral storage라 재시작 시 DB가 초기화되며 새 env var 값으로 admin 계정 재생성됨)
+- 로컬 `.env`의 `GRAFANA_ADMIN_PASSWORD`도 `admin1234`로 갱신 (git에는 커밋 안 됨)
+- 로그인 테스트(`/login` API) → HTTP 200 확인
+- ⚠️ 보안 경고: Grafana는 external ingress로 공개 URL을 가지며, `admin1234`는 추측하기 쉬운 비밀번호임. 사용자가 명시적으로 요청하여 적용했으나, 운영 환경에서는 강력한 비밀번호 또는 추가 접근 제한(IP 제한 등)을 권장
