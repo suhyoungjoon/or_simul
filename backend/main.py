@@ -16,6 +16,10 @@ app.add_middleware(
 
 Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
+from routers.data import router as data_router
+
+app.include_router(data_router)
+
 # ── 스키마 ──────────────────────────────────────────────
 class Worker(BaseModel):
     id: int
