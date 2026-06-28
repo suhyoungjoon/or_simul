@@ -20,6 +20,10 @@ from routers.data import router as data_router
 
 app.include_router(data_router)
 
+from routers.legacy import router as legacy_router
+
+app.include_router(legacy_router)
+
 # ── 스키마 ──────────────────────────────────────────────
 class Worker(BaseModel):
     id: int
