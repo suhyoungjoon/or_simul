@@ -152,3 +152,5 @@ CREATE TABLE legacy_sync_log (
 - `ca-ingestion`의 CI/CD 자동화 (이번 범위는 수동 배포)
 - 온디맨드 호출 실패 시 캐시 fallback 정책
 - DB 스키마 정교화 (관계, 인덱스, 추가 컬럼)
+- **인증/인가 미적용 (의도적 결정)**: `POST /legacy/orders/lookup`, `GET /workers`, `GET /customers` 모두 인증 없이 호출 가능. 특히 `/legacy/orders/lookup`은 호출될 때마다 레거시로 아웃바운드 호출(최대 3회 재시도 × 10초 타임아웃)과 DB 쓰기를 트리거하므로, 실제 `LEGACY_BASE_URL`이 연결되는 시점에는 인증/레이트리밋 도입이 필요. 지금은 레거시 연결 자체가 placeholder라 낮은 리스크로 보류
+- **배치 실행 중 프로세스가 강제 종료되는 경우**: `legacy_sync_log`에 `status='running'`인 채로 row가 영구히 남을 수 있음(정상적인 예외는 처리되지만 OOM/강제 종료 등은 캐치 불가). 후속 모니터링 작업(Grafana 패널)에서 "일정 시간 이상 running인 row는 stale로 간주" 같은 보정 로직 고려
