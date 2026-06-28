@@ -12,6 +12,7 @@
 | Static Web App (frontend) | swa-scheduling-optimizer | eastasia | Free | 생성됨, 배포 완료 |
 | Container App (Prometheus) | ca-prometheus | koreacentral | 0.25vCPU/0.5GiB, min0/max1, internal ingress | 생성됨, Running |
 | Container App (Loki) | ca-loki | koreacentral | 0.25vCPU/0.5GiB, min0/max1, internal ingress | 생성됨, Running |
+| Container App (Grafana) | ca-grafana | koreacentral | 0.25vCPU/0.5GiB, min0/max1, external ingress | 생성됨, Running. URL: https://ca-grafana.ambitiousdune-51dd5b07.koreacentral.azurecontainerapps.io |
 
 ---
 
@@ -60,3 +61,16 @@
 - **Loki Container App 구축**: `monitoring/loki/loki-config.yml`(filesystem storage, tsdb schema v13), `Dockerfile`(base `grafana/loki:3.0.0`) 작성. `az acr build --image scheduling-loki:v1` 실행, 성공 (Run ID: de5). `az containerapp create --name ca-loki --target-port 3100 --ingress internal --cpu 0.25 --memory 0.5Gi --min-replicas 0 --max-replicas 1` 실행, 성공
 - **Promtail 사이드카로 backend 로그 수집 구성**: backend `Dockerfile`을 수정해 uvicorn 출력을 `tee`로 `/var/log/app/app.log`에도 기록하도록 변경, 이미지 재빌드(v3, Run ID: de6). `monitoring/promtail/promtail-config.yml`(scrape `/var/log/app/*.log`, push to `https://ca-loki.internal.<env-domain>/loki/api/v1/push`), `Dockerfile`(base `grafana/promtail:3.0.0`) 작성, 이미지 빌드(v1, Run ID: de7). `az containerapp update --yaml`로 `ca-scheduling-backend`에 `promtail` 사이드카 컨테이너 + `logs`(EmptyDir) 공유 볼륨 추가 — 멀티 컨테이너 revision으로 전환 (각 컨테이너 0.25vCPU/0.5GiB, 합산 0.5vCPU/1GiB). 로그로 promtail이 `/var/log/app/app.log`를 정상 tail 중인 것 확인
   - ⚠️ EmptyDir 볼륨은 ephemeral이라 재시작 시 로그 유실됨 (사용자 결정에 따른 의도된 사항 — 단기 모니터링 목적)
+- **Grafana Container App 구축**: `monitoring/grafana/provisioning/datasources/datasources.yml`(Prometheus uid=Prometheus, Loki uid=Loki, 명시적 uid 지정), `provisioning/dashboards/`(대시보드 자동 프로비저닝 + `backend-overview.json` 기본 대시보드: 요청률/p95 응답시간/5xx 에러율/백엔드 로그 패널), `Dockerfile`(base `grafana/grafana:11.0.0`) 작성. `az acr build --image scheduling-grafana:v1` (Run ID: de8), v2로 datasource uid 수정 후 재빌드 (Run ID: de9)
+  - admin 비밀번호: `openssl rand`로 랜덤 생성 후 로컬 `.env`(gitignore 처리됨, `GRAFANA_ADMIN_PASSWORD`)에만 저장, git에는 커밋되지 않음. Container App에는 `--secrets`로 등록해 `GF_SECURITY_ADMIN_PASSWORD` 환경변수에 secretref로 주입 (평문 노출 없음)
+  - `az containerapp create --name ca-grafana --target-port 3000 --ingress external --cpu 0.25 --memory 0.5Gi --min-replicas 0 --max-replicas 1` 실행, 성공. 공개 URL: https://ca-grafana.ambitiousdune-51dd5b07.koreacentral.azurecontainerapps.io
+  - 동작 확인: `/login` → HTTP 200, API 로그인 성공, Prometheus datasource proxy로 `/api/v1/targets` 조회 → `scheduling-backend` job `health: up` 확인 (backend `/metrics` 정상 scrape 중)
+  - Grafana는 admin + 랜덤 비밀번호만으로 보호되며 추가 IP 제한 등은 미적용 (사용자 결정)
+
+## 모니터링 구축 요약 (Prometheus + Grafana + Loki, 2026-06-28 완료)
+- 구성: Grafana만 external ingress로 공개, Prometheus/Loki는 internal ingress로 같은 Container Apps 환경 내부망에서만 통신
+- 메트릭 흐름: backend `/metrics` (prometheus-fastapi-instrumentator) → Prometheus가 15s 주기로 scrape → Grafana(PromQL)
+- 로그 흐름: backend stdout → `tee`로 `/var/log/app/app.log` 기록(EmptyDir 공유 볼륨) → Promtail 사이드카가 tail → Loki에 push → Grafana(LogQL)
+- 기본 대시보드 "Scheduling Backend Overview" 자동 프로비저닝: 요청률(req/s), p95 응답시간, 5xx 에러율, 백엔드 로그 패널
+- 남은 작업(후속 단계로 보류): Grafana 알람 규칙 미설정, 데이터 영속화(Azure Files) 미적용(ephemeral storage 사용 중 — 재시작 시 메트릭/로그 유실), PostgreSQL 방화벽 IP 제한 미적용(여전히 전체 IP 허용 임시 상태)
+- Grafana 접속: https://ca-grafana.ambitiousdune-51dd5b07.koreacentral.azurecontainerapps.io (admin / 비밀번호는 로컬 `.env`의 `GRAFANA_ADMIN_PASSWORD` 참조)
