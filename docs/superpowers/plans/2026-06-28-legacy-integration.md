@@ -793,7 +793,7 @@ git commit -m "feat: add on-demand legacy order lookup endpoint"
 - Test fixture: `backend/tests/fixtures/workers_sample.csv`
 
 **Interfaces:**
-- Produces: `csv_parser.parse_workers_csv(path: str) -> list[dict]` — 각 dict 키: `id, name, x, y, color, can_iptv, as_rate, region`. 컬럼 누락/빈 파일은 빈 리스트 또는 부분 결과를 반환하고 예외를 던지지 않음(행 단위로 건너뛰고 경고만 누적).
+- Produces: `csv_parser.parse_workers_csv(path: str) -> tuple[list[dict], int]` — `(rows, skipped_count)`. 각 dict 키: `id, name, x, y, color, can_iptv, as_rate, region`. 컬럼 누락/빈 파일은 빈 리스트를 반환하고 예외를 던지지 않음(행 단위로 건너뛰고 `skipped_count`로 건수 누적). (Task 6 리뷰에서 "조용히 skip"이 누적 경고 요구사항과 맞지 않다는 plan-mandated 충돌이 발견되어, 호출자가 건너뛴 행 수를 알 수 있도록 시그니처를 튜플 반환으로 변경 — 사용자 승인됨)
 
 - [ ] **Step 1: 샘플 CSV 픽스처 작성**
 
@@ -1191,7 +1191,9 @@ def run(db, csv_dir: str | None = None, filename: str | None = None):
     path = os.path.join(csv_dir, filename)
 
     with sync_run(db, "workers_batch") as ctx:
-        rows = parse_workers_csv(path)
+        rows, skipped = parse_workers_csv(path)
+        if skipped:
+            print(f"workers_batch: skipped {skipped} malformed row(s) in {path}")
         for row in rows:
             db.merge(
                 Worker(

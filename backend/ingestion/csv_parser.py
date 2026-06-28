@@ -5,8 +5,9 @@ def _to_bool(value: str) -> bool:
     return value.strip().lower() in ("true", "1", "yes")
 
 
-def parse_workers_csv(path: str) -> list[dict]:
+def parse_workers_csv(path: str) -> tuple[list[dict], int]:
     rows = []
+    skipped = 0
     with open(path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for raw in reader:
@@ -24,5 +25,6 @@ def parse_workers_csv(path: str) -> list[dict]:
                     }
                 )
             except (KeyError, ValueError):
+                skipped += 1
                 continue
-    return rows
+    return rows, skipped

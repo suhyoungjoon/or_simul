@@ -6,9 +6,10 @@ FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 
 
 def test_parse_workers_csv_returns_list_of_dicts():
-    rows = parse_workers_csv(os.path.join(FIXTURE_DIR, "workers_sample.csv"))
+    rows, skipped = parse_workers_csv(os.path.join(FIXTURE_DIR, "workers_sample.csv"))
 
     assert len(rows) == 2
+    assert skipped == 0
     assert rows[0]["id"] == 1
     assert rows[0]["name"] == "김민준"
     assert rows[0]["can_iptv"] is True
@@ -24,7 +25,8 @@ def test_parse_workers_csv_skips_row_with_invalid_id(tmp_path):
         encoding="utf-8",
     )
 
-    rows = parse_workers_csv(str(bad_csv))
+    rows, skipped = parse_workers_csv(str(bad_csv))
 
     assert len(rows) == 1
     assert rows[0]["id"] == 3
+    assert skipped == 1
