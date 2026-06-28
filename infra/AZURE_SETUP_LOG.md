@@ -9,6 +9,7 @@
 | PostgreSQL Flexible Server | psql-scheduling-optimizer (psql-scheduling-optimizer.postgres.database.azure.com) | koreacentral | Burstable B1ms, 32GiB, v16 | 생성됨 |
 | Container Apps Environment | env-scheduling-optimizer | koreacentral | Consumption | 생성됨 |
 | Container App (backend) | ca-scheduling-backend | koreacentral | 0.25vCPU/0.5GiB, min0/max1 | 생성됨, Running |
+| Static Web App (frontend) | swa-scheduling-optimizer | eastasia | Free | 생성됨, 배포 완료 |
 
 ---
 
@@ -41,3 +42,10 @@
   - 공개 URL: https://ca-scheduling-backend.ambitiousdune-51dd5b07.koreacentral.azurecontainerapps.io/
   - 동작 확인: `curl .../docs` → HTTP 200 (FastAPI 정상 기동)
   - ⚠️ Consumption plan은 outbound IP가 다수(150+개) 동적 할당되어 PostgreSQL 방화벽을 특정 IP로 좁히기 어려움 → "Allow Azure services" 룰로 전환 검토 필요 (현재는 임시로 전체 IP 허용 유지 중)
+- **Static Web App 생성**: `koreacentral` 미지원 확인됨 (지원 리전: centralus, eastus2, westus2, westeurope, eastasia) → `eastasia`로 결정
+  - `Microsoft.Web` provider 미등록 → 등록 후 재시도, 성공
+  - `az staticwebapp create --name swa-scheduling-optimizer --resource-group rg-scheduling-optimizer --location eastasia --sku Free` 실행, 성공. Hostname: agreeable-river-0e656e000.7.azurestaticapps.net
+- **Frontend 빌드 & 배포**: `VITE_API_URL=https://ca-scheduling-backend.../​` 로 `npm run build`, `npx @azure/static-web-apps-cli deploy ./dist --deployment-token ... --env production` 실행, 성공
+  - 동작 확인: `curl https://agreeable-river-0e656e000.7.azurestaticapps.net/` → HTTP 200
+  - 배포 토큰은 임시 파일에 저장 후 사용 즉시 삭제, 저장소에는 커밋되지 않음
+  - 참고: Bitbucket 저장소와 직접 연동되지 않은 1회성 CLI 배포. GitHub/Azure DevOps 연동 CI/CD는 미설정 상태
