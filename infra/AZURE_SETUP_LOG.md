@@ -81,3 +81,11 @@
 - 로컬 `.env`의 `GRAFANA_ADMIN_PASSWORD`도 `admin1234`로 갱신 (git에는 커밋 안 됨)
 - 로그인 테스트(`/login` API) → HTTP 200 확인
 - ⚠️ 보안 경고: Grafana는 external ingress로 공개 URL을 가지며, `admin1234`는 추측하기 쉬운 비밀번호임. 사용자가 명시적으로 요청하여 적용했으나, 운영 환경에서는 강력한 비밀번호 또는 추가 접근 제한(IP 제한 등)을 권장
+
+### 2026-06-28 (GitHub Actions CI/CD 구축)
+- 현황 확인: 저장소는 GitHub(`github.com/suhyoungjoon/or_simul`), 기본/유일 브랜치는 `claude/scheduling-optimizer-setup-wcrh8t` (`main` 브랜치 없음). 기존 `bitbucket-pipelines.yml`은 AWS(ECR/ECS/S3/CloudFront)용으로 작성된 옛 파일이며 실제 사용된 적 없음 → 사용자 확인 후 삭제(`git rm bitbucket-pipelines.yml`)
+- **Azure 인증**: `az ad sp create-for-rbac --name sp-scheduling-optimizer-cicd --role Contributor --scopes /subscriptions/.../resourceGroups/rg-scheduling-optimizer --sdk-auth` 실행, 성공. 생성된 자격증명 JSON을 `gh secret set AZURE_CREDENTIALS`로 GitHub repo secret에 등록 (로컬에는 저장 안 함, 즉시 삭제)
+- **Static Web App 배포 토큰**: `az staticwebapp secrets list`로 조회 후 `gh secret set AZURE_STATIC_WEB_APPS_API_TOKEN`으로 등록
+- **워크플로 작성**: `.github/workflows/backend-deploy.yml`(`backend/**` 변경 시 `az acr build` → `az containerapp update --container-name ca-scheduling-backend`로 backend 컨테이너만 업데이트, promtail 사이드카는 영향 없음), `.github/workflows/frontend-deploy.yml`(`frontend/**` 변경 시 `npm run build` → `Azure/static-web-apps-deploy@v1`로 업로드)
+  - 트리거 브랜치: `main`과 실제 사용 중인 `claude/scheduling-optimizer-setup-wcrh8t` 둘 다 지정 (main 브랜치가 없는 현재 상황 반영)
+- 인증 방식은 사용자 선택에 따라 OIDC 대신 Service Principal 자격증명을 GitHub Secret으로 저장하는 방식 사용 (설정은 간단하지만 장기 자격증명이라 OIDC보다 보안상 취약 — 후속 개선 후보)
