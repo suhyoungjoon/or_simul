@@ -8,8 +8,10 @@
 | Container Registry | acrschedulingopt (acrschedulingopt.azurecr.io) | koreacentral | Basic | 생성됨 |
 | PostgreSQL Flexible Server | psql-scheduling-optimizer (psql-scheduling-optimizer.postgres.database.azure.com) | koreacentral | Burstable B1ms, 32GiB, v16 | 생성됨 |
 | Container Apps Environment | env-scheduling-optimizer | koreacentral | Consumption | 생성됨 |
-| Container App (backend) | ca-scheduling-backend | koreacentral | 0.25vCPU/0.5GiB, min0/max1 | 생성됨, Running |
+| Container App (backend) | ca-scheduling-backend | koreacentral | 0.25vCPU/0.5GiB (backend) + 0.25vCPU/0.5GiB (promtail 사이드카), min0/max1 | 생성됨, Running (v3, /metrics + 로그 사이드카 적용) |
 | Static Web App (frontend) | swa-scheduling-optimizer | eastasia | Free | 생성됨, 배포 완료 |
+| Container App (Prometheus) | ca-prometheus | koreacentral | 0.25vCPU/0.5GiB, min0/max1, internal ingress | 생성됨, Running |
+| Container App (Loki) | ca-loki | koreacentral | 0.25vCPU/0.5GiB, min0/max1, internal ingress | 생성됨, Running |
 
 ---
 
@@ -53,3 +55,8 @@
 ### 2026-06-28 (모니터링: Prometheus + Grafana + Loki 구축 착수)
 - **사용자 결정사항 확정**: Container App 이름 ca-prometheus/ca-grafana/ca-loki, Loki+Promtail까지 1단계에 포함, 데이터는 ephemeral storage 허용(영속화 안 함), Grafana는 admin+랜덤 비밀번호만 사용(추가 보안 설정 없음), 리소스 스펙은 backend와 동일(0.25vCPU/0.5GiB, min0/max1)
 - **Backend에 /metrics 엔드포인트 추가**: `prometheus-fastapi-instrumentator==7.0.0`을 `backend/requirements.txt`에 추가, `backend/main.py`에 `Instrumentator().instrument(app).expose(app, endpoint="/metrics")` 적용
+- **Backend 이미지 재빌드(v2) & 배포**: `az acr build --registry acrschedulingopt --image scheduling-backend:v2 ./backend` 실행, 성공 (Run ID: de3). `az containerapp update --name ca-scheduling-backend --image ...:v2` 실행, 성공. `curl .../metrics` → HTTP 200 확인
+- **Prometheus Container App 구축**: `monitoring/prometheus/prometheus.yml`(scrape target: `ca-scheduling-backend.internal.<env-domain>`, scheme https), `Dockerfile`(base `prom/prometheus:v2.53.0`) 작성. `az acr build --image scheduling-prometheus:v1` 실행, 성공 (Run ID: de4). `az containerapp create --name ca-prometheus --target-port 9090 --ingress internal --cpu 0.25 --memory 0.5Gi --min-replicas 0 --max-replicas 1` 실행, 성공. 로그로 정상 기동 및 config 로딩 확인
+- **Loki Container App 구축**: `monitoring/loki/loki-config.yml`(filesystem storage, tsdb schema v13), `Dockerfile`(base `grafana/loki:3.0.0`) 작성. `az acr build --image scheduling-loki:v1` 실행, 성공 (Run ID: de5). `az containerapp create --name ca-loki --target-port 3100 --ingress internal --cpu 0.25 --memory 0.5Gi --min-replicas 0 --max-replicas 1` 실행, 성공
+- **Promtail 사이드카로 backend 로그 수집 구성**: backend `Dockerfile`을 수정해 uvicorn 출력을 `tee`로 `/var/log/app/app.log`에도 기록하도록 변경, 이미지 재빌드(v3, Run ID: de6). `monitoring/promtail/promtail-config.yml`(scrape `/var/log/app/*.log`, push to `https://ca-loki.internal.<env-domain>/loki/api/v1/push`), `Dockerfile`(base `grafana/promtail:3.0.0`) 작성, 이미지 빌드(v1, Run ID: de7). `az containerapp update --yaml`로 `ca-scheduling-backend`에 `promtail` 사이드카 컨테이너 + `logs`(EmptyDir) 공유 볼륨 추가 — 멀티 컨테이너 revision으로 전환 (각 컨테이너 0.25vCPU/0.5GiB, 합산 0.5vCPU/1GiB). 로그로 promtail이 `/var/log/app/app.log`를 정상 tail 중인 것 확인
+  - ⚠️ EmptyDir 볼륨은 ephemeral이라 재시작 시 로그 유실됨 (사용자 결정에 따른 의도된 사항 — 단기 모니터링 목적)
