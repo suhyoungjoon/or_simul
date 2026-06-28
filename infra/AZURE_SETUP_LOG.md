@@ -89,3 +89,5 @@
 - **워크플로 작성**: `.github/workflows/backend-deploy.yml`(`backend/**` 변경 시 `az acr build` → `az containerapp update --container-name ca-scheduling-backend`로 backend 컨테이너만 업데이트, promtail 사이드카는 영향 없음), `.github/workflows/frontend-deploy.yml`(`frontend/**` 변경 시 `npm run build` → `Azure/static-web-apps-deploy@v1`로 업로드)
   - 트리거 브랜치: `main`과 실제 사용 중인 `claude/scheduling-optimizer-setup-wcrh8t` 둘 다 지정 (main 브랜치가 없는 현재 상황 반영)
 - 인증 방식은 사용자 선택에 따라 OIDC 대신 Service Principal 자격증명을 GitHub Secret으로 저장하는 방식 사용 (설정은 간단하지만 장기 자격증명이라 OIDC보다 보안상 취약 — 후속 개선 후보)
+- **첫 실행 이슈 및 수정**: `az ad sp create-for-rbac --sdk-auth`의 출력을 `tee`로 받았는데 WARNING 텍스트가 stdout에 섞여 `AZURE_CREDENTIALS` secret이 잘못된 JSON으로 저장됨 → `azure/login@v2`에서 "is not valid JSON" 오류로 backend 워크플로 실패. `az ad sp credential reset`으로 새 시크릿 발급 후 Python으로 순수 JSON만 추출해 `gh secret set`으로 재등록, `gh run rerun`으로 재실행
+- **검증 결과**: backend/frontend 워크플로 모두 성공(`success`). `curl .../metrics` → 200, `curl https://agreeable-river-0e656e000.7.azurestaticapps.net/` → 200 확인. 이제 `backend/**` 또는 `frontend/**` 변경을 해당 브랜치에 push하면 자동으로 ACR 빌드+Container App 업데이트 / SWA 빌드+배포가 수행됨
