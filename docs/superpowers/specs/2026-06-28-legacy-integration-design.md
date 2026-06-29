@@ -1,5 +1,7 @@
 # 레거시 연동 설계 (작업자/주문 데이터 → DB)
 
+> **업데이트 (2026-06-28)**: 온디맨드 조회 엔드포인트는 `POST /legacy/orders/lookup`에서 `GET /legacy/orders/{order_id}`로 변경되었습니다. 자세한 내용과 UI 연동은 [2026-06-28-mock-data-ui-integration-design.md](2026-06-28-mock-data-ui-integration-design.md) 참고.
+
 ## 배경
 
 scheduling-optimizer의 backend는 현재 DB를 전혀 사용하지 않는다. `DATABASE_URL` 환경변수는 설정돼 있지만 `psycopg2`/`sqlalchemy`는 `requirements.txt`에 주석으로만 존재하고, `/optimize` 엔드포인트는 매 요청마다 프론트엔드(`dataGenerator.js`)가 만든 가짜 워커/고객 데이터를 body로 받아 처리한다.
