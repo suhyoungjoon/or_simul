@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SidePanel from "./components/SidePanel";
 import MapCanvas from "./components/MapCanvas";
 import Timeline  from "./components/Timeline";
-import { generateWorkers, generateCustomers, SVC_LABEL } from "./utils/dataGenerator";
+import OrderLookup from "./components/OrderLookup";
+import { SVC_LABEL } from "./utils/dataGenerator";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -11,6 +12,7 @@ const TABS = [
   { id:"timeline", label:"📅 타임라인" },
   { id:"table",    label:"📋 배정 목록" },
   { id:"log",      label:"🔧 최적화 로그" },
+  { id:"lookup",   label:"🔍 주문 조회" },
 ];
 
 export default function App() {
@@ -20,21 +22,47 @@ export default function App() {
   const [workers,     setWorkers]     = useState([]);
   const [customers,   setCustomers]   = useState([]);
   const [error,       setError]       = useState(null);
+  const [dataLoaded,  setDataLoaded]  = useState(false);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [wRes, cRes] = await Promise.all([
+          fetch(`${API}/workers`),
+          fetch(`${API}/customers`),
+        ]);
+        if (!wRes.ok || !cRes.ok) throw new Error("초기 데이터 조회 실패");
+        setWorkers(await wRes.json());
+        setCustomers(await cRes.json());
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setDataLoaded(true);
+      }
+    }
+    loadData();
+  }, []);
+
+  function mergeCustomer(customer) {
+    setCustomers(prev => {
+      const idx = prev.findIndex(c => c.id === customer.id);
+      if (idx === -1) return [...prev, customer];
+      const next = [...prev];
+      next[idx] = customer;
+      return next;
+    });
+  }
 
   async function handleOptimize(cfg) {
     setLoading(true); setError(null);
-
-    const ws = generateWorkers(cfg.workerCount);
-    const cs = generateCustomers(cfg.custCount, cfg.region, cfg.svc);
-    setWorkers(ws); setCustomers(cs);
 
     try {
       const res = await fetch(`${API}/optimize`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          workers: ws,
-          customers: cs,
+          workers: workers,
+          customers: customers,
           constraints: {
             max_jobs:       cfg.maxJobs,
             route_weight:   cfg.routeWeight,
@@ -104,7 +132,14 @@ export default function App() {
           {!result && !loading && (
             <div style={{textAlign:"center",padding:"80px 20px",color:"#5a6085"}}>
               <div style={{fontSize:36,marginBottom:10,opacity:.5}}>📡</div>
-              <div style={{fontSize:13}}>왼쪽에서 조건을 설정하고<br/><strong style={{color:"#4f6ef7"}}>최적화 실행</strong>을 눌러주세요</div>
+              {dataLoaded && workers.length === 0 && customers.length === 0 ? (
+                <div style={{fontSize:13}}>
+                  표시할 데이터가 없습니다.<br/>
+                  <code>python -m scripts.seed_dummy_data</code>를 먼저 실행하세요
+                </div>
+              ) : (
+                <div style={{fontSize:13}}>왼쪽에서 조건을 설정하고<br/><strong style={{color:"#4f6ef7"}}>최적화 실행</strong>을 눌러주세요</div>
+              )}
             </div>
           )}
 
@@ -141,6 +176,7 @@ export default function App() {
               {tab === "log"      && <LogView logs={logs} />}
             </>
           )}
+          {tab === "lookup" && <OrderLookup apiBase={API} onAddToOptimization={mergeCustomer} />}
         </div>
       </div>
     </div>
