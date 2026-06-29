@@ -234,3 +234,61 @@ resource "azurerm_container_app" "loki" {
     ignore_changes = [template[0].container[0].image]
   }
 }
+
+resource "azurerm_container_app" "grafana" {
+  name                         = "ca-grafana"
+  resource_group_name          = azurerm_resource_group.main.name
+  container_app_environment_id = azurerm_container_app_environment.main.id
+  revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  registry {
+    server   = azurerm_container_registry.acr.login_server
+    identity = "system"
+  }
+
+  secret {
+    name  = "grafana-admin-password"
+    value = var.grafana_admin_password
+  }
+
+  ingress {
+    external_enabled = true
+    target_port      = 3000
+    transport        = "auto"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+
+  template {
+    min_replicas = 0
+    max_replicas = 1
+
+    container {
+      name   = "ca-grafana"
+      image  = "acrschedulingopt.azurecr.io/scheduling-grafana:v2"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      env {
+        name  = "GF_SECURITY_ADMIN_USER"
+        value = "admin"
+      }
+
+      env {
+        name        = "GF_SECURITY_ADMIN_PASSWORD"
+        secret_name = "grafana-admin-password"
+      }
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [template[0].container[0].image]
+  }
+}
