@@ -54,3 +54,14 @@ def test_fetch_orders_retries_then_raises_on_persistent_500():
         client.fetch_orders("2026-06-28")
 
     assert route.call_count == 3
+
+
+@respx.mock
+def test_fetch_order_raises_legacy_client_error_on_connect_error():
+    respx.get("https://legacy.example.com/orders/101").mock(
+        side_effect=httpx.ConnectError("nodename nor servname provided, or not known")
+    )
+    client = LegacyClient(base_url="https://legacy.example.com")
+
+    with pytest.raises(LegacyClientError):
+        client.fetch_order(101)

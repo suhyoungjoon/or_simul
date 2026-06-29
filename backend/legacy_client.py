@@ -27,6 +27,8 @@ class LegacyClient:
                 last_error = LegacyClientError(f"timeout calling {url}: {exc}")
             except httpx.HTTPStatusError as exc:
                 raise LegacyClientError(f"legacy client error: {exc}") from exc
+            except httpx.RequestError as exc:
+                last_error = LegacyClientError(f"connection error calling {url}: {exc}")
         raise last_error
 
     def fetch_orders(self, batch_date: str) -> list[dict]:
