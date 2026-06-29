@@ -24,6 +24,9 @@ class Worker(Base):
     can_iptv = Column(Boolean)
     as_rate = Column(Float)
     region = Column(String)
+    address = Column(String)
+    lat = Column(Float)
+    lng = Column(Float)
     source = Column(String, default="legacy_csv")
     batch_date = Column(Date)
     updated_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -41,6 +44,9 @@ class Customer(Base):
     time_window = Column(String)
     vip = Column(Boolean)
     overdue = Column(Boolean)
+    address = Column(String)
+    lat = Column(Float)
+    lng = Column(Float)
     source = Column(String)
     batch_date = Column(Date)
     updated_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -64,6 +70,9 @@ class LegacyOrder(Base):
     time_window = Column(String)
     vip = Column(Boolean)
     overdue = Column(Boolean)
+    address = Column(String)
+    lat = Column(Float)
+    lng = Column(Float)
 
 
 class LegacySyncLog(Base):
