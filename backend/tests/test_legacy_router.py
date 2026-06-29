@@ -17,7 +17,7 @@ def test_lookup_upserts_and_returns_customer(client, db_session):
         "overdue": False,
     }
     with patch("routers.legacy.LegacyClient.fetch_order", return_value=fake_order):
-        response = client.post("/legacy/orders/lookup", json={"order_id": 555})
+        response = client.get("/legacy/orders/555")
 
     assert response.status_code == 200
     assert response.json()["name"] == "고객B"
@@ -32,6 +32,6 @@ def test_lookup_returns_503_when_legacy_unavailable(client, db_session):
         "routers.legacy.LegacyClient.fetch_order",
         side_effect=LegacyClientError("timeout"),
     ):
-        response = client.post("/legacy/orders/lookup", json={"order_id": 999})
+        response = client.get("/legacy/orders/999")
 
     assert response.status_code == 503

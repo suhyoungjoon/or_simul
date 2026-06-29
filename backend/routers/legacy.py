@@ -1,7 +1,6 @@
 import os
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from db import get_db
@@ -13,15 +12,11 @@ router = APIRouter(prefix="/legacy")
 LEGACY_BASE_URL = os.environ.get("LEGACY_BASE_URL", "https://legacy.example.com")
 
 
-class LookupRequest(BaseModel):
-    order_id: int
-
-
-@router.post("/orders/lookup")
-def lookup_order(req: LookupRequest, db: Session = Depends(get_db)):
+@router.get("/orders/{order_id}")
+def lookup_order(order_id: int, db: Session = Depends(get_db)):
     client = LegacyClient(base_url=LEGACY_BASE_URL)
     try:
-        order = client.fetch_order(req.order_id)
+        order = client.fetch_order(order_id)
     except LegacyClientError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
