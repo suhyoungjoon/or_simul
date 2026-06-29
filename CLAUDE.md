@@ -50,12 +50,11 @@ Grafana 접속: https://ca-grafana.ambitiousdune-51dd5b07.koreacentral.azurecont
    - 계획: [docs/superpowers/plans/2026-06-28-mock-data-ui-integration.md](docs/superpowers/plans/2026-06-28-mock-data-ui-integration.md)
    - 추가된 것: `backend/scripts/seed_dummy_data.py`(수동 1회 시드, `source="mock"`, 로컬/Azure DB 모두 시드 완료), `GET /legacy/orders/{order_id}`로 경로 변경(기존 `POST /legacy/orders/lookup` 폐기), 프론트엔드는 `GET /workers`/`GET /customers`로 전환(클라이언트 가짜 데이터 생성 제거), SidePanel 데모 데이터 슬라이더 제거, 신규 `OrderLookup.jsx`(🔍 주문 조회 탭)로 온디맨드 조회 결과를 최적화 대상에 추가 가능
    - 테스트: 백엔드 20개 전부 통과, 프론트엔드는 실제 브라우저(preview) 수동 검증 완료 — 초기 데이터 로딩, 최적화 실행(배정률 100%), 주문 조회 탭 에러 처리(전체 화면 영향 없음) 확인
-   - 발견된 이슈: 레거시 연결 실패 시 백엔드가 503이 아닌 500을 반환하는 기존 버그(`backend/legacy_client.py`) 발견 — 별도 후속 작업으로 분리(`task_8cf1ced4`), 프론트엔드는 `!res.ok`로 상태코드 무관하게 동일하게 처리하므로 이번 작업 범위에는 영향 없음
+   - 발견 및 수정된 이슈: 레거시 연결 실패 시 백엔드가 503이 아닌 500을 반환하던 기존 버그(`backend/legacy_client.py`가 `httpx.ConnectError`를 `LegacyClientError`로 변환하지 않음 — FastAPI 기본 500 핸들러는 CORS 헤더를 안 붙여 브라우저에서 "Failed to fetch"로 보임) — `httpx.RequestError` catch 추가로 수정 완료, 테스트 추가
 
 ## 알려진 보류/후속 작업 (의도적으로 범위 밖으로 둔 것)
 
 - `ca-ingestion` Azure Container Apps Job 실제 배포 + CI/CD 자동화 (현재는 로컬 빌드/실행 검증까지만)
-- `legacy_client.py`가 레거시 연결 실패 시 503 대신 500을 반환하는 버그 (httpx.ConnectError가 LegacyClientError로 변환되지 않음, FastAPI 기본 500 핸들러가 CORS 헤더를 안 붙여 브라우저에서 "Failed to fetch"로 보임)
 - `GET /legacy/orders/{order_id}`, `GET /workers`, `GET /customers`에 인증/레이트리밋 없음
 - 공유 폴더(작업자 CSV) 네트워크 연결 방식(Azure Files vs VPN/ExpressRoute) 미결정
 - PostgreSQL 방화벽이 전체 IP 허용 상태 (운영 전 좁혀야 함)
