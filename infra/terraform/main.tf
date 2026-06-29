@@ -34,7 +34,11 @@ resource "azurerm_postgresql_flexible_server" "main" {
   public_network_access_enabled = true
 
   lifecycle {
-    ignore_changes = [zone]
+    # zone: Azure가 가용영역을 재배치할 수 있어 무시.
+    # administrator_password: Azure API가 비밀번호 값을 절대 반환하지 않아
+    # import 후 매 plan마다 "추가됨"으로 표시됨(실제 변경 아님) — 비밀번호를
+    # 바꾸려면 az containerapp/az postgres 명령으로 직접 변경.
+    ignore_changes = [zone, administrator_password]
   }
 }
 
@@ -142,9 +146,12 @@ resource "azurerm_container_app" "backend" {
   lifecycle {
     # CI/CD(.github/workflows/backend-deploy.yml)가 az containerapp update로
     # 이미지 태그를 자주 갱신한다. Terraform이 그 변경을 되돌리지 않도록 무시.
+    # env(DATABASE_URL): Azure가 한번 import된 일반 env 값을 sensitive 변수로
+    # 참조하면 "값이 sensitive로 재분류됨" 표시만 매번 뜨는 현상이 있어 함께 무시.
     ignore_changes = [
       template[0].container[0].image,
       template[0].container[1].image,
+      template[0].container[0].env,
     ]
   }
 }
