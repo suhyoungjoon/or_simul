@@ -45,8 +45,6 @@ export default function SidePanel({ onOptimize, loading }) {
     vip: true,
     as: true,
     overdue: false,
-    custCount: 20,
-    workerCount: 5,
   });
   const set = (k,v) => setCfg(p=>({...p,[k]:v}));
 
@@ -97,14 +95,6 @@ export default function SidePanel({ onOptimize, loading }) {
         <ToggleRow label="VIP 고객 우선 배정" value={cfg.vip}    onChange={v=>set("vip",v)} />
         <ToggleRow label="AS 이력 반영"        value={cfg.as}     onChange={v=>set("as",v)} />
         <ToggleRow label="희망일 초과 우선"    value={cfg.overdue} onChange={v=>set("overdue",v)} />
-      </Section>
-
-      {/* 데이터 생성 */}
-      <Section title="데모 데이터 생성">
-        <RangeField label="고객 수" min={10} max={40} value={cfg.custCount}
-          onChange={v=>set("custCount",v)} />
-        <RangeField label="작업자 수" min={3} max={8} value={cfg.workerCount}
-          onChange={v=>set("workerCount",v)} />
       </Section>
 
       {/* 실행 버튼 */}
