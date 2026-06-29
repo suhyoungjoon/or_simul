@@ -73,3 +73,78 @@ resource "azurerm_container_app_environment" "main" {
     ignore_changes = [log_analytics_workspace_id]
   }
 }
+
+resource "azurerm_container_app" "backend" {
+  name                         = "ca-scheduling-backend"
+  resource_group_name          = azurerm_resource_group.main.name
+  container_app_environment_id = azurerm_container_app_environment.main.id
+  revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  registry {
+    server   = azurerm_container_registry.acr.login_server
+    identity = "system"
+  }
+
+  ingress {
+    external_enabled = true
+    target_port      = 8000
+    transport        = "auto"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+
+  template {
+    min_replicas = 0
+    max_replicas = 1
+
+    volume {
+      name         = "logs"
+      storage_type = "EmptyDir"
+    }
+
+    container {
+      name   = "ca-scheduling-backend"
+      image  = "acrschedulingopt.azurecr.io/scheduling-backend:latest"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      env {
+        name  = "DATABASE_URL"
+        value = var.database_url
+      }
+
+      volume_mounts {
+        name = "logs"
+        path = "/var/log/app"
+      }
+    }
+
+    container {
+      name   = "promtail"
+      image  = "acrschedulingopt.azurecr.io/scheduling-promtail:v1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      volume_mounts {
+        name = "logs"
+        path = "/var/log/app"
+      }
+    }
+  }
+
+  lifecycle {
+    # CI/CD(.github/workflows/backend-deploy.yml)가 az containerapp update로
+    # 이미지 태그를 자주 갱신한다. Terraform이 그 변경을 되돌리지 않도록 무시.
+    ignore_changes = [
+      template[0].container[0].image,
+      template[0].container[1].image,
+    ]
+  }
+}
