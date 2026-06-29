@@ -148,3 +148,89 @@ resource "azurerm_container_app" "backend" {
     ]
   }
 }
+
+resource "azurerm_container_app" "prometheus" {
+  name                         = "ca-prometheus"
+  resource_group_name          = azurerm_resource_group.main.name
+  container_app_environment_id = azurerm_container_app_environment.main.id
+  revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  registry {
+    server   = azurerm_container_registry.acr.login_server
+    identity = "system"
+  }
+
+  ingress {
+    external_enabled = false
+    target_port      = 9090
+    transport        = "auto"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+
+  template {
+    min_replicas = 0
+    max_replicas = 1
+
+    container {
+      name   = "ca-prometheus"
+      image  = "acrschedulingopt.azurecr.io/scheduling-prometheus:v1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [template[0].container[0].image]
+  }
+}
+
+resource "azurerm_container_app" "loki" {
+  name                         = "ca-loki"
+  resource_group_name          = azurerm_resource_group.main.name
+  container_app_environment_id = azurerm_container_app_environment.main.id
+  revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  registry {
+    server   = azurerm_container_registry.acr.login_server
+    identity = "system"
+  }
+
+  ingress {
+    external_enabled = false
+    target_port      = 3100
+    transport        = "auto"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+
+  template {
+    min_replicas = 0
+    max_replicas = 1
+
+    container {
+      name   = "ca-loki"
+      image  = "acrschedulingopt.azurecr.io/scheduling-loki:v1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [template[0].container[0].image]
+  }
+}
