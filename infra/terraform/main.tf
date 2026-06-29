@@ -292,3 +292,11 @@ resource "azurerm_container_app" "grafana" {
     ignore_changes = [template[0].container[0].image]
   }
 }
+
+resource "azurerm_static_web_app" "frontend" {
+  name                = "swa-scheduling-optimizer"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = "East Asia"
+  sku_tier            = "Free"
+  sku_size            = "Free"
+}
