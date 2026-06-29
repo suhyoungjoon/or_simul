@@ -18,6 +18,26 @@ REGIONS = {
 }
 SVC_POOL = ["internet", "internet", "internet", "iptv", "combo", "combo"]
 REGION_KEYS = ["A", "B", "C"]
+REGION_NEIGHBORHOODS = {
+    "A": ["역삼동", "반포동", "서초동", "논현동"],
+    "B": ["잠실동", "천호동", "성내동"],
+    "C": ["연남동", "신촌동", "북아현동"],
+}
+REGION_CENTER_LATLNG = {
+    "A": (37.4979, 127.0276),  # 강남/서초
+    "B": (37.5145, 127.1058),  # 송파/강동
+    "C": (37.5599, 126.9249),  # 마포/서대문
+}
+LATLNG_JITTER = 0.012  # 약 1.3km 반경
+
+
+def _gen_address_and_latlng(rng: random.Random, region: str) -> dict:
+    dong = REGION_NEIGHBORHOODS[region][rng.randint(0, len(REGION_NEIGHBORHOODS[region]) - 1)]
+    address = f"{dong} {rng.randint(1, 30)}길 {rng.randint(1, 50)}"
+    base_lat, base_lng = REGION_CENTER_LATLNG[region]
+    lat = round(base_lat + rng.uniform(-LATLNG_JITTER, LATLNG_JITTER), 6)
+    lng = round(base_lng + rng.uniform(-LATLNG_JITTER, LATLNG_JITTER), 6)
+    return {"address": address, "lat": lat, "lng": lng}
 
 SEED = 42
 WORKER_COUNT = 5
@@ -30,6 +50,7 @@ def build_workers() -> list[dict]:
     rng = random.Random(SEED)
     workers = []
     for i in range(WORKER_COUNT):
+        region = REGION_KEYS[i % 3]
         workers.append(
             {
                 "id": i + 1,
@@ -39,7 +60,8 @@ def build_workers() -> list[dict]:
                 "y": round(rng.uniform(0.08, 0.92), 4),
                 "can_iptv": rng.random() > 0.3,
                 "as_rate": round(rng.uniform(0.03, 0.18), 2),
-                "region": REGION_KEYS[i % 3],
+                "region": region,
+                **_gen_address_and_latlng(rng, region),
             }
         )
     return workers
@@ -67,6 +89,7 @@ def build_customers() -> list[dict]:
                 "time_window": "morning" if rng.random() > 0.5 else "afternoon",
                 "vip": rng.random() > 0.8,
                 "overdue": rng.random() > 0.85,
+                **_gen_address_and_latlng(rng, reg),
             }
         )
     return customers
@@ -100,6 +123,7 @@ def build_legacy_orders() -> list[dict]:
                 "time_window": "morning" if rng.random() > 0.5 else "afternoon",
                 "vip": rng.random() > 0.8,
                 "overdue": rng.random() > 0.85,
+                **_gen_address_and_latlng(rng, reg),
             }
         )
     return orders

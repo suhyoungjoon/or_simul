@@ -46,3 +46,33 @@ def test_seed_is_idempotent(db_session):
     assert db_session.query(Worker).count() == 5
     assert db_session.query(Customer).count() == 20
     assert db_session.query(LegacyOrder).count() == 10
+
+
+def test_build_workers_includes_address_and_coords():
+    workers = build_workers()
+    assert all(w["address"] for w in workers)
+    assert all(37.4 <= w["lat"] <= 37.7 for w in workers)
+    assert all(126.8 <= w["lng"] <= 127.2 for w in workers)
+
+
+def test_build_customers_includes_address_and_coords():
+    customers = build_customers()
+    assert all(c["address"] for c in customers)
+    assert all(37.4 <= c["lat"] <= 37.7 for c in customers)
+    assert all(126.8 <= c["lng"] <= 127.2 for c in customers)
+
+
+def test_build_legacy_orders_includes_address_and_coords():
+    orders = build_legacy_orders()
+    assert all(o["address"] for o in orders)
+    assert all(37.4 <= o["lat"] <= 37.7 for o in orders)
+    assert all(126.8 <= o["lng"] <= 127.2 for o in orders)
+
+
+def test_address_matches_region_neighborhood_pool():
+    from scripts.seed_dummy_data import REGION_NEIGHBORHOODS
+
+    customers = build_customers()
+    for c in customers:
+        pool = REGION_NEIGHBORHOODS[c["region"]]
+        assert any(c["address"].startswith(dong) for dong in pool)
