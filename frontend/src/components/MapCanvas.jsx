@@ -7,7 +7,7 @@ const REGIONS = {
   C: { cx:0.25, cy:0.40, r:0.22, name:'마포/서대문' },
 };
 
-export default function MapCanvas({ workers, customers, assignments }) {
+export default function MapCanvas({ workers, customers, assignments, lookupAddedIds }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -78,6 +78,10 @@ export default function MapCanvas({ workers, customers, assignments }) {
       ctx.beginPath(); ctx.arc(cx,cy, c.vip?7:5, 0, Math.PI*2);
       ctx.fillStyle = a ? a.worker.color : "#444"; ctx.fill();
       if (c.vip) { ctx.strokeStyle="#f59e0b"; ctx.lineWidth=2; ctx.stroke(); }
+      if (lookupAddedIds?.has(c.id)) {
+        ctx.beginPath(); ctx.arc(cx,cy, (c.vip?7:5)+4, 0, Math.PI*2);
+        ctx.strokeStyle="#67dff0"; ctx.lineWidth=1.5; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+      }
       ctx.fillStyle="#fff"; ctx.font="7px system-ui";
       ctx.textAlign="center"; ctx.textBaseline="middle";
       ctx.fillText(icons[c.svc], cx, cy);
@@ -96,7 +100,7 @@ export default function MapCanvas({ workers, customers, assignments }) {
       ctx.fillText(w.name, wx, wy+16);
     });
     ctx.textAlign="left";
-  }, [workers, customers, assignments]);
+  }, [workers, customers, assignments, lookupAddedIds]);
 
   return (
     <div style={{position:"relative", background:"#141720", borderRadius:10, overflow:"hidden", border:"1px solid #2e3250"}}>
@@ -111,6 +115,10 @@ export default function MapCanvas({ workers, customers, assignments }) {
         <div style={{display:"flex",alignItems:"center",gap:7,fontSize:11,color:"#8b91b5",marginTop:6}}>
           <div style={{width:10,height:10,borderRadius:"50%",border:"2px solid #f59e0b"}} />
           VIP 고객
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:7,fontSize:11,color:"#8b91b5"}}>
+          <div style={{width:14,height:14,borderRadius:"50%",border:"1.5px dashed #67dff0"}} />
+          🔍 온디맨드 조회로 추가됨
         </div>
         <div style={{display:"flex",alignItems:"center",gap:7,fontSize:11,color:"#8b91b5"}}>
           <span style={{fontSize:9,fontFamily:"monospace",color:"#8b91b5"}}>I/T/C</span>

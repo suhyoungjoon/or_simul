@@ -22,6 +22,7 @@ export default function App() {
   const [workers,     setWorkers]     = useState([]);
   const [customers,   setCustomers]   = useState([]);
   const [optimizedCustomers, setOptimizedCustomers] = useState([]);
+  const [lookupAddedIds, setLookupAddedIds] = useState(new Set());
   const [error,       setError]       = useState(null);
   const [dataLoaded,  setDataLoaded]  = useState(false);
 
@@ -52,6 +53,7 @@ export default function App() {
       next[idx] = customer;
       return next;
     });
+    setLookupAddedIds(prev => new Set(prev).add(customer.id));
   }
 
   async function handleOptimize(cfg) {
@@ -177,9 +179,9 @@ export default function App() {
                 ))}
               </div>
 
-              {tab === "map"      && <MapCanvas workers={workers} customers={optimizedCustomers} assignments={assignments} />}
+              {tab === "map"      && <MapCanvas workers={workers} customers={optimizedCustomers} assignments={assignments} lookupAddedIds={lookupAddedIds} />}
               {tab === "timeline" && <Timeline  workers={workers} customers={optimizedCustomers} assignments={assignments} />}
-              {tab === "table"    && <AssignTable workers={workers} customers={optimizedCustomers} assignments={assignments} />}
+              {tab === "table"    && <AssignTable workers={workers} customers={optimizedCustomers} assignments={assignments} lookupAddedIds={lookupAddedIds} />}
               {tab === "log"      && <LogView logs={logs} />}
             </>
           )}
@@ -191,7 +193,7 @@ export default function App() {
 }
 
 // 배정 목록 테이블
-function AssignTable({ workers, customers, assignments }) {
+function AssignTable({ workers, customers, assignments, lookupAddedIds }) {
   const wMap = Object.fromEntries(workers.map(w=>[w.id,w]));
   const aMap = Object.fromEntries(assignments.map(a=>[a.customer_id,a]));
   const DAY_START = 9*60;
@@ -214,8 +216,13 @@ function AssignTable({ workers, customers, assignments }) {
           {customers.map(c=>{
             const a=aMap[c.id], w=a?wMap[a.worker_id]:null;
             return (
-              <tr key={c.id}>
-                <td style={td}>{c.name}{c.vip?" ⭐":""}</td>
+              <tr key={c.id} style={lookupAddedIds?.has(c.id) ? {background:"rgba(6,182,212,.06)"} : undefined}>
+                <td style={td}>{c.name}{c.vip?" ⭐":""}{lookupAddedIds?.has(c.id) && (
+                  <span style={{marginLeft:6,display:"inline-block",padding:"1px 6px",borderRadius:4,
+                    fontSize:9,fontWeight:600,background:"rgba(6,182,212,.18)",color:"#67dff0"}}>
+                    🔍 온디맨드 조회
+                  </span>
+                )}</td>
                 <td style={td}>{c.region ?? <span style={{color:"#5a6085"}}>—</span>}</td>
                 <td style={td}><span style={{display:"inline-block",padding:"2px 7px",borderRadius:4,
                   fontSize:10,fontWeight:500,background:svcColor[c.svc],color:svcText[c.svc]}}>
