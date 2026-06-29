@@ -36,14 +36,24 @@ export default function MapCanvas({ workers, customers, assignments }) {
     for (let y=0; y<H; y+=40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
 
     // 구역
-    Object.entries(REGIONS).forEach(([,r]) => {
+    Object.entries(REGIONS).forEach(([key,r]) => {
+      const radius = r.r*Math.min(W,H);
       ctx.beginPath();
-      ctx.arc(r.cx*W, r.cy*H, r.r*Math.min(W,H), 0, Math.PI*2);
-      ctx.fillStyle   = "rgba(79,110,247,.04)";  ctx.fill();
-      ctx.strokeStyle = "rgba(79,110,247,.15)";  ctx.lineWidth = 1;
-      ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle = "rgba(79,110,247,.6)"; ctx.font = "11px system-ui";
-      ctx.fillText(r.name, r.cx*W - 18, r.cy*H - r.r*Math.min(W,H) - 6);
+      ctx.arc(r.cx*W, r.cy*H, radius, 0, Math.PI*2);
+      ctx.fillStyle   = "rgba(79,110,247,.08)";  ctx.fill();
+      ctx.strokeStyle = "rgba(79,110,247,.45)";  ctx.lineWidth = 1.5;
+      ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+
+      const label = `${key}구역 · ${r.name}`;
+      const labelX = r.cx*W, labelY = r.cy*H - radius - 12;
+      ctx.font = "bold 12px system-ui";
+      const textW = ctx.measureText(label).width;
+      ctx.fillStyle = "rgba(15,17,23,.85)";
+      ctx.fillRect(labelX - textW/2 - 6, labelY - 12, textW + 12, 18);
+      ctx.fillStyle = "#9db4ff";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(label, labelX, labelY - 3);
+      ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
     });
 
     // 동선
@@ -105,6 +115,14 @@ export default function MapCanvas({ workers, customers, assignments }) {
         <div style={{display:"flex",alignItems:"center",gap:7,fontSize:11,color:"#8b91b5"}}>
           <span style={{fontSize:9,fontFamily:"monospace",color:"#8b91b5"}}>I/T/C</span>
           인터넷/IPTV/결합
+        </div>
+        <div style={{borderTop:"1px solid #2e3250",marginTop:8,paddingTop:8}}>
+          {Object.entries(REGIONS).map(([key,r]) => (
+            <div key={key} style={{display:"flex",alignItems:"center",gap:7,fontSize:11,color:"#9db4ff",marginBottom:3}}>
+              <div style={{width:10,height:10,borderRadius:"50%",border:"1.5px dashed #9db4ff"}} />
+              {key}구역 · {r.name}
+            </div>
+          ))}
         </div>
       </div>
     </div>
