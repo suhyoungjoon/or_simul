@@ -91,3 +91,13 @@
 - 인증 방식은 사용자 선택에 따라 OIDC 대신 Service Principal 자격증명을 GitHub Secret으로 저장하는 방식 사용 (설정은 간단하지만 장기 자격증명이라 OIDC보다 보안상 취약 — 후속 개선 후보)
 - **첫 실행 이슈 및 수정**: `az ad sp create-for-rbac --sdk-auth`의 출력을 `tee`로 받았는데 WARNING 텍스트가 stdout에 섞여 `AZURE_CREDENTIALS` secret이 잘못된 JSON으로 저장됨 → `azure/login@v2`에서 "is not valid JSON" 오류로 backend 워크플로 실패. `az ad sp credential reset`으로 새 시크릿 발급 후 Python으로 순수 JSON만 추출해 `gh secret set`으로 재등록, `gh run rerun`으로 재실행
 - **검증 결과**: backend/frontend 워크플로 모두 성공(`success`). `curl .../metrics` → 200, `curl https://agreeable-river-0e656e000.7.azurestaticapps.net/` → 200 확인. 이제 `backend/**` 또는 `frontend/**` 변경을 해당 브랜치에 push하면 자동으로 ACR 빌드+Container App 업데이트 / SWA 빌드+배포가 수행됨
+
+### 2026-06-28 (Terraform import 작업 중 — Prometheus/Loki 임시 중단)
+- 브랜치 `claude/project-setup-review-9q5d5r`에서 기존 CLI로 만든 Azure 리소스를 Terraform(`infra/terraform/`)으로 import하는 작업 진행 중 (Resource Group, ACR, PostgreSQL+DB+방화벽, Log Analytics, Container Apps Environment, backend/Prometheus/Loki/Grafana Container App까지 import 완료, 전부 `terraform plan` no changes 확인됨)
+- 사용자 요청으로 `ca-prometheus`, `ca-loki` revision을 `az containerapp revision deactivate`로 비활성화 — 메트릭 수집/로그 push 일시 중단. 재개 시 `az containerapp revision activate --name <app> --resource-group rg-scheduling-optimizer --revision <revision>`으로 복구
+  - 영향: backend `/metrics`는 더 이상 scrape되지 않음, Promtail은 Loki push 실패 로그를 계속 남기지만 backend 자체 동작에는 영향 없음
+- **Terraform import 완료**: Static Web App(`swa-scheduling-optimizer`)까지 import 완료. 총 9개 리소스(Resource Group, ACR, PostgreSQL Flexible Server+DB+방화벽 규칙, Log Analytics workspace, Container Apps Environment, backend Container App(멀티 컨테이너), Prometheus/Loki/Grafana Container App, Static Web App)가 `infra/terraform/main.tf`에 코드로 선언되고 `terraform import`로 state에 편입됨
+  - 최종 `terraform plan` → **No changes** 확인. 비밀번호류(`administrator_password`, backend의 `DATABASE_URL` env)는 Azure API가 값을 절대 반환하지 않아 매번 가짜 diff가 뜨는 문제가 있어 `lifecycle.ignore_changes`로 명시적으로 무시 처리
+  - backend Container App의 컨테이너 이미지(`template[0].container[*].image`)도 `ignore_changes` 처리 — GitHub Actions(`backend-deploy.yml`)가 `az containerapp update`로 이미지 태그를 갱신하는 것과 Terraform이 충돌하지 않도록 함
+  - `azurerm_container_app_environment`의 `log_analytics_workspace_id`도 import 후 API에서 재조회가 안 되는 azurerm 한계로 `ignore_changes` 처리 (실수로 apply하면 환경 전체가 destroy+recreate될 위험이 있어 사전에 방지)
+  - state는 로컬 파일(`infra/terraform/terraform.tfstate`, gitignore 처리됨)로 시작 — 여러 명이 작업하게 되면 Azure Storage Account 기반 remote backend로 전환 권장
