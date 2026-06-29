@@ -17,6 +17,9 @@ class WorkerOut(BaseModel):
     can_iptv: bool | None = None
     as_rate: float | None = None
     region: str | None = None
+    address: str | None = None
+    lat: float | None = None
+    lng: float | None = None
 
     class Config:
         from_attributes = True
@@ -32,6 +35,9 @@ class CustomerOut(BaseModel):
     time_window: str | None = None
     vip: bool | None = None
     overdue: bool | None = None
+    address: str | None = None
+    lat: float | None = None
+    lng: float | None = None
 
     class Config:
         from_attributes = True

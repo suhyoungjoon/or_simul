@@ -23,6 +23,9 @@ def lookup_order(order_id: int, db: Session = Depends(get_db)):
         time_window=order.time_window,
         vip=order.vip,
         overdue=order.overdue,
+        address=order.address,
+        lat=order.lat,
+        lng=order.lng,
         source="ondemand",
     )
     db.merge(customer)
@@ -38,4 +41,7 @@ def lookup_order(order_id: int, db: Session = Depends(get_db)):
         "time_window": order.time_window,
         "vip": order.vip,
         "overdue": order.overdue,
+        "address": order.address,
+        "lat": order.lat,
+        "lng": order.lng,
     }
