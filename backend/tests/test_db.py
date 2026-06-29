@@ -13,4 +13,5 @@ def test_base_metadata_creates_tables_on_sqlite():
         "workers",
         "customers",
         "legacy_sync_log",
+        "legacy_orders",
     }

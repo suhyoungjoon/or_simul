@@ -109,3 +109,10 @@
 - `python -m scripts.seed_dummy_data` (`backend/scripts/seed_dummy_data.py`, 이번 작업에서 신규 작성) 실행 → "시드 완료: workers=5, customers=20" 출력
 - 배포된 백엔드 API(`https://ca-scheduling-backend.ambitiousdune-51dd5b07.koreacentral.azurecontainerapps.io`)로 `GET /workers`(5건), `GET /customers`(20건) 정상 응답 확인
 - 방화벽은 기존에 전체 IP 허용 상태(`0.0.0.0-255.255.255.255`)라 로컬에서 바로 접속 가능했음 (운영 전 좁혀야 한다는 기존 메모는 그대로 유효, 이번 작업 범위 밖)
+
+### 2026-06-29 (legacy_orders 테이블 추가 — 온디맨드 조회 데모용)
+- `GET /legacy/orders/{order_id}`가 실제 레거시 API(placeholder URL)를 호출하던 것을 신규 `legacy_orders` 테이블 조회로 변경(`backend/models.py`의 `LegacyOrder`, 마이그레이션 `b6fb906cf082`)
+- `alembic upgrade head`를 `DATABASE_URL`을 Azure로 지정한 채 실행해 Azure DB에 `legacy_orders` 테이블 생성
+- `python -m scripts.seed_dummy_data` 재실행 → "시드 완료: workers=5, customers=20, legacy_orders=10 (id 101~110)" 출력. `customers`(id 1~20)와 겹치지 않는 id 101~110 범위로 시드해 "아직 시스템에 안 들어온 레거시 주문"을 흉내냄
+- 로컬에서 `GET /legacy/orders/101` → 200 정상 응답, `GET /legacy/orders/999`(존재하지 않음) → 404 확인. 프론트엔드 주문 조회 탭에서 조회 → 최적화 대상에 추가 → 최적화 실행까지 브라우저로 전체 시나리오 검증 완료
+- `legacy_client.py`(실제 HTTP 클라이언트)는 그대로 유지 — `ingestion/orders_batch.py`(배치 잡)가 계속 사용 중이며, 실제 레거시 연동 시 `routers/legacy.py`만 다시 `LegacyClient` 호출로 되돌리면 됨

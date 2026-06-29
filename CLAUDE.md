@@ -51,6 +51,8 @@ Grafana 접속: https://ca-grafana.ambitiousdune-51dd5b07.koreacentral.azurecont
    - 추가된 것: `backend/scripts/seed_dummy_data.py`(수동 1회 시드, `source="mock"`, 로컬/Azure DB 모두 시드 완료), `GET /legacy/orders/{order_id}`로 경로 변경(기존 `POST /legacy/orders/lookup` 폐기), 프론트엔드는 `GET /workers`/`GET /customers`로 전환(클라이언트 가짜 데이터 생성 제거), SidePanel 데모 데이터 슬라이더 제거, 신규 `OrderLookup.jsx`(🔍 주문 조회 탭)로 온디맨드 조회 결과를 최적화 대상에 추가 가능
    - 테스트: 백엔드 20개 전부 통과, 프론트엔드는 실제 브라우저(preview) 수동 검증 완료 — 초기 데이터 로딩, 최적화 실행(배정률 100%), 주문 조회 탭 에러 처리(전체 화면 영향 없음) 확인
    - 발견 및 수정된 이슈: 레거시 연결 실패 시 백엔드가 503이 아닌 500을 반환하던 기존 버그(`backend/legacy_client.py`가 `httpx.ConnectError`를 `LegacyClientError`로 변환하지 않음 — FastAPI 기본 500 핸들러는 CORS 헤더를 안 붙여 브라우저에서 "Failed to fetch"로 보임) — `httpx.RequestError` catch 추가로 수정 완료, 테스트 추가
+   - 후속 수정: `cfg.region`/`cfg.svc` 드롭다운이 죽은 UI였던 것을 발견 — `/optimize` 요청 전 프론트엔드에서 실제로 필터링하도록 수정, 배정 목록에 "구역" 컬럼 추가, 지도뷰 구역 라벨/범례를 더 잘 보이게 개선
+   - **`GET /legacy/orders/{order_id}`를 실제 레거시 HTTP 호출 대신 신규 `legacy_orders` 테이블 조회로 변경** (레거시 미연결 상태에서도 온디맨드 조회 데모가 끝까지 동작하도록): `LegacyOrder` 모델/마이그레이션(`b6fb906cf082`) 추가, `customers`와 id가 겹치지 않는 101~110번 주문 10건을 시드(로컬+Azure 모두), 조회 시 `customers`에 `source="ondemand"`로 upsert 후 응답(없으면 404). `legacy_client.py`(실제 HTTP 클라이언트)는 배치(`ingestion/orders_batch.py`)용으로 그대로 유지 — 실제 레거시 연동 시 이 라우터를 다시 `LegacyClient` 호출로 되돌리면 됨
 
 ## 알려진 보류/후속 작업 (의도적으로 범위 밖으로 둔 것)
 
