@@ -23,6 +23,7 @@ export default function App() {
   const [customers,   setCustomers]   = useState([]);
   const [optimizedCustomers, setOptimizedCustomers] = useState([]);
   const [lookupAddedIds, setLookupAddedIds] = useState(new Set());
+  const [selectedWorkerId, setSelectedWorkerId] = useState(null);
   const [error,       setError]       = useState(null);
   const [dataLoaded,  setDataLoaded]  = useState(false);
 
@@ -84,6 +85,7 @@ export default function App() {
       if (!res.ok) throw new Error(`서버 오류: ${res.status}`);
       setResult(await res.json());
       setOptimizedCustomers(filteredCustomers);
+      setSelectedWorkerId(null);
       setTab("map");
     } catch(e) {
       setError(e.message);
@@ -95,6 +97,19 @@ export default function App() {
   const assignments = result?.assignments ?? [];
   const stats       = result?.stats ?? {};
   const logs        = result?.logs  ?? [];
+
+  const displayAssignments = selectedWorkerId
+    ? assignments.filter(a => a.worker_id === selectedWorkerId)
+    : assignments;
+  const displayWorkers = selectedWorkerId
+    ? workers.filter(w => w.id === selectedWorkerId)
+    : workers;
+  const displayCustomers = selectedWorkerId
+    ? optimizedCustomers.filter(c => displayAssignments.some(a => a.customer_id === c.id))
+    : optimizedCustomers;
+  const jobCountByWorker = Object.fromEntries(
+    workers.map(w => [w.id, assignments.filter(a => a.worker_id === w.id).length])
+  );
 
   return (
     <div style={{display:"grid",gridTemplateColumns:"300px 1fr",gridTemplateRows:"52px 1fr",
@@ -179,15 +194,55 @@ export default function App() {
                 ))}
               </div>
 
-              {tab === "map"      && <MapCanvas workers={workers} customers={optimizedCustomers} assignments={assignments} lookupAddedIds={lookupAddedIds} />}
-              {tab === "timeline" && <Timeline  workers={workers} customers={optimizedCustomers} assignments={assignments} />}
-              {tab === "table"    && <AssignTable workers={workers} customers={optimizedCustomers} assignments={assignments} lookupAddedIds={lookupAddedIds} />}
-              {tab === "log"      && <LogView logs={logs} />}
+              <div style={{display:"flex",gap:14,alignItems:"flex-start"}}>
+                <div style={{flex:1,minWidth:0}}>
+                  {tab === "map"      && <MapCanvas workers={displayWorkers} customers={displayCustomers} assignments={displayAssignments} lookupAddedIds={lookupAddedIds} />}
+                  {tab === "timeline" && <Timeline  workers={displayWorkers} customers={displayCustomers} assignments={displayAssignments} />}
+                  {tab === "table"    && <AssignTable workers={displayWorkers} customers={displayCustomers} assignments={displayAssignments} lookupAddedIds={lookupAddedIds} />}
+                  {tab === "log"      && <LogView logs={logs} />}
+                </div>
+                {tab !== "log" && (
+                  <WorkerFilterList
+                    workers={workers}
+                    jobCountByWorker={jobCountByWorker}
+                    selectedWorkerId={selectedWorkerId}
+                    onSelect={setSelectedWorkerId}
+                  />
+                )}
+              </div>
             </>
           )}
           {tab === "lookup" && <OrderLookup apiBase={API} onAddToOptimization={mergeCustomer} />}
         </div>
       </div>
+    </div>
+  );
+}
+
+// 작업자 필터 목록 (옆에서 작업자 선택 시 해당 작업자 결과만 표시)
+function WorkerFilterList({ workers, jobCountByWorker, selectedWorkerId, onSelect }) {
+  const itemStyle = (active) => ({
+    display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:8,
+    cursor:"pointer", marginBottom:4, fontSize:12,
+    background: active ? "rgba(79,110,247,.15)" : "transparent",
+    border: `1px solid ${active ? "#4f6ef7" : "transparent"}`,
+  });
+  return (
+    <div style={{width:160,flexShrink:0,background:"#1a1d27",border:"1px solid #2e3250",
+      borderRadius:10,padding:10}}>
+      <div style={{fontSize:10,color:"#5a6085",textTransform:"uppercase",letterSpacing:".06em",
+        marginBottom:8,padding:"0 2px"}}>작업자별 보기</div>
+      <div onClick={()=>onSelect(null)} style={itemStyle(selectedWorkerId===null)}>
+        <div style={{width:10,height:10,borderRadius:"50%",background:"#5a6085"}} />
+        전체
+      </div>
+      {workers.map(w=>(
+        <div key={w.id} onClick={()=>onSelect(w.id)} style={itemStyle(selectedWorkerId===w.id)}>
+          <div style={{width:10,height:10,borderRadius:"50%",background:w.color}} />
+          <span style={{flex:1,color: selectedWorkerId===w.id?"#e8eaf6":"#8b91b5"}}>{w.name}</span>
+          <span style={{fontSize:10,color:"#5a6085"}}>{jobCountByWorker[w.id] ?? 0}건</span>
+        </div>
+      ))}
     </div>
   );
 }
