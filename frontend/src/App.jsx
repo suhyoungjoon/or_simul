@@ -21,6 +21,7 @@ export default function App() {
   const [result,      setResult]      = useState(null);
   const [workers,     setWorkers]     = useState([]);
   const [customers,   setCustomers]   = useState([]);
+  const [optimizedCustomers, setOptimizedCustomers] = useState([]);
   const [error,       setError]       = useState(null);
   const [dataLoaded,  setDataLoaded]  = useState(false);
 
@@ -56,13 +57,18 @@ export default function App() {
   async function handleOptimize(cfg) {
     setLoading(true); setError(null);
 
+    const filteredCustomers = customers.filter(c =>
+      (cfg.region === "all" || c.region === cfg.region) &&
+      (cfg.svc === "all" || c.svc === cfg.svc)
+    );
+
     try {
       const res = await fetch(`${API}/optimize`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           workers: workers,
-          customers: customers,
+          customers: filteredCustomers,
           constraints: {
             max_jobs:       cfg.maxJobs,
             route_weight:   cfg.routeWeight,
@@ -75,6 +81,7 @@ export default function App() {
       });
       if (!res.ok) throw new Error(`서버 오류: ${res.status}`);
       setResult(await res.json());
+      setOptimizedCustomers(filteredCustomers);
       setTab("map");
     } catch(e) {
       setError(e.message);
@@ -170,9 +177,9 @@ export default function App() {
                 ))}
               </div>
 
-              {tab === "map"      && <MapCanvas workers={workers} customers={customers} assignments={assignments} />}
-              {tab === "timeline" && <Timeline  workers={workers} customers={customers} assignments={assignments} />}
-              {tab === "table"    && <AssignTable workers={workers} customers={customers} assignments={assignments} />}
+              {tab === "map"      && <MapCanvas workers={workers} customers={optimizedCustomers} assignments={assignments} />}
+              {tab === "timeline" && <Timeline  workers={workers} customers={optimizedCustomers} assignments={assignments} />}
+              {tab === "table"    && <AssignTable workers={workers} customers={optimizedCustomers} assignments={assignments} />}
               {tab === "log"      && <LogView logs={logs} />}
             </>
           )}
@@ -201,7 +208,7 @@ function AssignTable({ workers, customers, assignments }) {
   return (
     <div style={{background:"#1a1d27",border:"1px solid #2e3250",borderRadius:10,overflow:"hidden"}}>
       <table style={{width:"100%",borderCollapse:"collapse"}}>
-        <thead><tr>{["고객","서비스","작업자","예정 시간","희망 시간대","상태"].map(h=>(
+        <thead><tr>{["고객","구역","서비스","작업자","예정 시간","희망 시간대","상태"].map(h=>(
           <th key={h} style={th}>{h}</th>))}</tr></thead>
         <tbody>
           {customers.map(c=>{
@@ -209,6 +216,7 @@ function AssignTable({ workers, customers, assignments }) {
             return (
               <tr key={c.id}>
                 <td style={td}>{c.name}{c.vip?" ⭐":""}</td>
+                <td style={td}>{c.region ?? <span style={{color:"#5a6085"}}>—</span>}</td>
                 <td style={td}><span style={{display:"inline-block",padding:"2px 7px",borderRadius:4,
                   fontSize:10,fontWeight:500,background:svcColor[c.svc],color:svcText[c.svc]}}>
                   {SVC_LABEL[c.svc]}</span></td>
