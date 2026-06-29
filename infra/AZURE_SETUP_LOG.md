@@ -101,3 +101,11 @@
   - backend Container App의 컨테이너 이미지(`template[0].container[*].image`)도 `ignore_changes` 처리 — GitHub Actions(`backend-deploy.yml`)가 `az containerapp update`로 이미지 태그를 갱신하는 것과 Terraform이 충돌하지 않도록 함
   - `azurerm_container_app_environment`의 `log_analytics_workspace_id`도 import 후 API에서 재조회가 안 되는 azurerm 한계로 `ignore_changes` 처리 (실수로 apply하면 환경 전체가 destroy+recreate될 위험이 있어 사전에 방지)
   - state는 로컬 파일(`infra/terraform/terraform.tfstate`, gitignore 처리됨)로 시작 — 여러 명이 작업하게 되면 Azure Storage Account 기반 remote backend로 전환 권장
+
+### 2026-06-28 (가상 데이터 시드 — Azure PostgreSQL)
+- 브랜치 `claude/legacy-ui-mockup`에서 진행 중인 "가상 데이터 기반 UI 연동" 작업의 일부로, 레거시 미연결 상태에서도 데모가 가능하도록 배포된 Azure PostgreSQL(`psql-scheduling-optimizer`)에 가상 데이터를 시드
+- `az containerapp show --name ca-scheduling-backend ... --query "properties.template.containers[0].env"`로 `DATABASE_URL` 평문 값 확인 (Container App env에 secret이 아닌 평문 env로 등록되어 있어 별도 secret 조회 불필요)
+- Azure DB에 `workers`/`customers`/`legacy_sync_log` 테이블이 아직 없는 상태였음을 발견 (Task 1의 Alembic 마이그레이션이 로컬 DB에만 적용되고 Azure DB에는 미적용) → `alembic upgrade head`를 `DATABASE_URL`을 Azure로 지정한 채 실행해 4개 테이블 생성
+- `python -m scripts.seed_dummy_data` (`backend/scripts/seed_dummy_data.py`, 이번 작업에서 신규 작성) 실행 → "시드 완료: workers=5, customers=20" 출력
+- 배포된 백엔드 API(`https://ca-scheduling-backend.ambitiousdune-51dd5b07.koreacentral.azurecontainerapps.io`)로 `GET /workers`(5건), `GET /customers`(20건) 정상 응답 확인
+- 방화벽은 기존에 전체 IP 허용 상태(`0.0.0.0-255.255.255.255`)라 로컬에서 바로 접속 가능했음 (운영 전 좁혀야 한다는 기존 메모는 그대로 유효, 이번 작업 범위 밖)
