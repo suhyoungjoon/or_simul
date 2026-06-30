@@ -1,4 +1,5 @@
-import { SVC_LABEL, SVC_TIME } from "../utils/dataGenerator";
+import { useStore } from "../store";
+import { SVC_LABEL } from "../utils/dataGenerator";
 
 const DAY_START = 9*60, DAY_END = 19*60, TOTAL = DAY_END - DAY_START;
 const HOURS = ['9시','10시','11시','12시','13시','14시','15시','16시','17시','18시'];
@@ -8,21 +9,33 @@ function toHHMM(min) {
   return `${Math.floor(abs/60)}:${String(abs%60).padStart(2,'0')}`;
 }
 
-export default function Timeline({ workers, customers, assignments }) {
-  const wMap = Object.fromEntries(workers.map(w=>[w.id,w]));
-  const cMap = Object.fromEntries(customers.map(c=>[c.id,c]));
+export default function Timeline() {
+  const workers = useStore((s) => s.workers);
+  const customers = useStore((s) => s.customers);
+  const optimizedCustomers = useStore((s) => s.optimizedCustomers);
+  const result = useStore((s) => s.result);
+  const selectedWorkerId = useStore((s) => s.selectedWorkerId);
 
-  const schedules = workers.map(w => ({
+  const displayCustomers = optimizedCustomers.length ? optimizedCustomers : customers;
+  const allAssignments = result?.assignments || [];
+
+  const displayWorkers = selectedWorkerId
+    ? workers.filter((w) => w.id === selectedWorkerId)
+    : workers;
+
+  const cMap = Object.fromEntries(displayCustomers.map((c) => [c.id, c]));
+
+  const schedules = displayWorkers.map((w) => ({
     worker: w,
-    jobs: assignments
-      .filter(a => a.worker_id === w.id)
-      .sort((a,b) => a.start_min - b.start_min),
+    jobs: allAssignments
+      .filter((a) => a.worker_id === w.id)
+      .sort((a, b) => a.start_min - b.start_min),
   }));
 
   return (
     <div>
       {/* 작업자 요약 */}
-      <div style={{display:"grid",gridTemplateColumns:`repeat(${Math.min(workers.length,4)},1fr)`,gap:10,marginBottom:14}}>
+      <div style={{display:"grid",gridTemplateColumns:`repeat(${Math.min(displayWorkers.length,4)},1fr)`,gap:10,marginBottom:14}}>
         {schedules.map(s=>(
           <div key={s.worker.id} style={{background:"#1a1d27",border:`1px solid #2e3250`,borderLeft:`3px solid ${s.worker.color}`,borderRadius:10,padding:"10px 14px"}}>
             <div style={{fontSize:10,color:"#5a6085",textTransform:"uppercase",letterSpacing:".06em",marginBottom:4}}>{s.worker.name}</div>
