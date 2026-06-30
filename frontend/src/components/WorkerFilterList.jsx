@@ -13,7 +13,7 @@ export default function WorkerFilterList() {
   );
 
   return (
-    <Card className="border-border/50 shadow-none">
+    <Card className="border-0 ring-0 shadow-none">
       <CardHeader>
         <CardTitle className="text-base">작업자별 필터</CardTitle>
       </CardHeader>

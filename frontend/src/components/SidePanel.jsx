@@ -14,7 +14,7 @@ export default function SidePanel() {
   const loading = useStore((s) => s.loading);
 
   return (
-    <Card className="border-border/50 shadow-none">
+    <Card className="border-0 ring-0 shadow-none">
       <CardHeader>
         <CardTitle className="text-base">최적화 설정</CardTitle>
       </CardHeader>
