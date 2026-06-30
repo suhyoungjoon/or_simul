@@ -2,7 +2,7 @@ name: Deploy Frontend to Azure Static Web Apps
 
 on:
   push:
-    branches: [main, claude/scheduling-optimizer-setup-wcrh8t, claude/legacy-ui-mockup]
+    branches: [main, claude/scheduling-optimizer-setup-wcrh8t, claude/legacy-ui-mockup, claude/frontend-modernization]
     paths:
       - "frontend/**"
       - ".github/workflows/frontend-deploy.yml"

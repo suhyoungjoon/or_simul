@@ -2,7 +2,7 @@ name: Deploy Backend to Azure Container Apps
 
 on:
   push:
-    branches: [main, claude/scheduling-optimizer-setup-wcrh8t, claude/legacy-ui-mockup]
+    branches: [main, claude/scheduling-optimizer-setup-wcrh8t, claude/legacy-ui-mockup, claude/frontend-modernization]
     paths:
       - "backend/**"
       - ".github/workflows/backend-deploy.yml"
