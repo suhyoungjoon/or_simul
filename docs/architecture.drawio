@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- Title -->
+    <mxCell id="100" value="인터넷/IPTV 설치 작업자 배정 최적화 시스템 · 클라우드 아키텍처"
+      style="text;html=1;align=center;verticalAlign=middle;resizable=0;strokeColor=none;fillColor=none;fontSize=16;fontStyle=1;"
+      vertex="1" parent="1">
+      <mxGeometry x="290" y="12" width="760" height="32" as="geometry" />
+    </mxCell>
+
+    <!-- ===== AZURE KOREA CENTRAL ===== -->
+    <mxCell id="2" value="Azure · Korea Central"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;verticalAlign=top;align=left;spacingLeft=14;spacingTop=10;opacity=60;"
+      vertex="1" parent="1">
+      <mxGeometry x="230" y="50" width="890" height="820" as="geometry" />
+    </mxCell>
+
+    <!-- ACR -->
+    <mxCell id="3" value="&lt;b&gt;Container Registry&lt;/b&gt;&lt;br&gt;acrschedulingopt.azurecr.io&lt;br&gt;SKU: Basic"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;fontColor=#ffffff;strokeColor=#004E8C;fontSize=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="280" y="115" width="200" height="65" as="geometry" />
+    </mxCell>
+
+    <!-- Log Analytics Workspace -->
+    <mxCell id="4" value="&lt;b&gt;Log Analytics Workspace&lt;/b&gt;&lt;br&gt;workspace-rgschedulingoptimizer7tkl"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;fontColor=#ffffff;strokeColor=#004E8C;fontSize=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="515" y="115" width="220" height="65" as="geometry" />
+    </mxCell>
+
+    <!-- ===== CONTAINER APPS ENVIRONMENT ===== -->
+    <mxCell id="5" value="Container Apps Environment · env-scheduling-optimizer"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;verticalAlign=top;align=left;spacingLeft=14;spacingTop=10;opacity=80;"
+      vertex="1" parent="1">
+      <mxGeometry x="255" y="230" width="845" height="490" as="geometry" />
+    </mxCell>
+
+    <!-- ca-scheduling-backend -->
+    <mxCell id="6" value="&lt;b&gt;ca-scheduling-backend&lt;/b&gt;&lt;br&gt;FastAPI · port 8000&lt;br&gt;0.25 vCPU / 0.5 GiB (min 0 / max 1)&lt;br&gt;+ promtail 사이드카"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0a30a;fontColor=#000000;strokeColor=#BD7000;fontSize=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="295" y="305" width="260" height="90" as="geometry" />
+    </mxCell>
+
+    <!-- ca-prometheus (inactive) -->
+    <mxCell id="7" value="&lt;b&gt;ca-prometheus&lt;/b&gt;&lt;br&gt;Prometheus v2.53&lt;br&gt;⊘ revision 비활성"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#aaaaaa;strokeColor=#aaaaaa;dashed=1;fontSize=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="625" y="290" width="185" height="65" as="geometry" />
+    </mxCell>
+
+    <!-- ca-loki (inactive) -->
+    <mxCell id="8" value="&lt;b&gt;ca-loki&lt;/b&gt;&lt;br&gt;Grafana Loki 3.0&lt;br&gt;⊘ revision 비활성"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#aaaaaa;strokeColor=#aaaaaa;dashed=1;fontSize=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="625" y="395" width="185" height="65" as="geometry" />
+    </mxCell>
+
+    <!-- ca-grafana -->
+    <mxCell id="9" value="&lt;b&gt;ca-grafana&lt;/b&gt;&lt;br&gt;Grafana 11.0&lt;br&gt;외부 공개 URL"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0a30a;fontColor=#000000;strokeColor=#BD7000;fontSize=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="875" y="335" width="185" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- PostgreSQL -->
+    <mxCell id="10" value="&lt;b&gt;Azure Database for PostgreSQL&lt;/b&gt;&lt;br&gt;psql-scheduling-optimizer&lt;br&gt;Burstable B1ms · 32 GiB · v16"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#336791;fontColor=#ffffff;strokeColor=#1a3d5c;fontSize=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="390" y="760" width="260" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- ===== AZURE EAST ASIA (SWA) ===== -->
+    <mxCell id="11" value="Azure · East Asia"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=8;opacity=60;"
+      vertex="1" parent="1">
+      <mxGeometry x="30" y="510" width="185" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- Static Web App -->
+    <mxCell id="12" value="&lt;b&gt;Static Web App&lt;/b&gt;&lt;br&gt;swa-scheduling-optimizer&lt;br&gt;React + Vite · Free"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;fontColor=#ffffff;strokeColor=#004E8C;fontSize=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="47" y="552" width="151" height="65" as="geometry" />
+    </mxCell>
+
+    <!-- ===== EXTERNAL ===== -->
+
+    <!-- GitHub -->
+    <mxCell id="13" value="&lt;b&gt;GitHub&lt;/b&gt;&lt;br&gt;suhyoungjoon/or_simul"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#24292e;fontColor=#ffffff;strokeColor=#000000;fontSize=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="30" y="95" width="165" height="60" as="geometry" />
+    </mxCell>
+
+    <!-- GitHub Actions -->
+    <mxCell id="14" value="&lt;b&gt;GitHub Actions&lt;/b&gt;&lt;br&gt;backend-deploy.yml&lt;br&gt;frontend-deploy.yml"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2088FF;fontColor=#ffffff;strokeColor=#0055cc;fontSize=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="30" y="225" width="165" height="75" as="geometry" />
+    </mxCell>
+
+    <!-- User/Browser -->
+    <mxCell id="15" value="사용자&lt;br&gt;(Browser)"
+      style="ellipse;whiteSpace=wrap;html=1;fillColor=#f9f9f9;strokeColor=#555555;fontSize=11;"
+      vertex="1" parent="1">
+      <mxGeometry x="42" y="400" width="130" height="60" as="geometry" />
+    </mxCell>
+
+    <!-- Legacy System (미연결) -->
+    <mxCell id="16" value="&lt;b&gt;레거시 시스템&lt;/b&gt;&lt;br&gt;인터넷/IPTV 접수 DB&lt;br&gt;(미연결)"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#999999;strokeColor=#999999;dashed=1;fontSize=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="1167" y="145" width="165" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- ===== ARROWS ===== -->
+
+    <!-- User → SWA -->
+    <mxCell id="20" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;"
+      edge="1" source="15" target="12" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- SWA → ca-backend -->
+    <mxCell id="21" value="API 호출"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;"
+      edge="1" source="12" target="6" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- GitHub → GitHub Actions -->
+    <mxCell id="22" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;"
+      edge="1" source="13" target="14" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- GitHub Actions → ACR -->
+    <mxCell id="23" value="빌드 / 푸시"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;"
+      edge="1" source="14" target="3" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- GitHub Actions → SWA -->
+    <mxCell id="24" value="배포"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;"
+      edge="1" source="14" target="12" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ACR → ca-backend -->
+    <mxCell id="25" value="이미지 배포"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;"
+      edge="1" source="3" target="6" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ca-backend ↔ PostgreSQL -->
+    <mxCell id="27" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;startArrow=block;startFill=1;"
+      edge="1" source="6" target="10" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ca-backend → ca-prometheus (dashed) -->
+    <mxCell id="28" value="/metrics"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#aaaaaa;fontColor=#aaaaaa;fontSize=10;"
+      edge="1" source="6" target="7" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ca-backend → ca-loki (dashed) -->
+    <mxCell id="29" value="logs"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#aaaaaa;fontColor=#aaaaaa;fontSize=10;"
+      edge="1" source="6" target="8" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ca-prometheus → ca-grafana (dashed) -->
+    <mxCell id="30" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#aaaaaa;"
+      edge="1" source="7" target="9" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ca-loki → ca-grafana (dashed) -->
+    <mxCell id="31" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#aaaaaa;"
+      edge="1" source="8" target="9" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Legacy → ca-backend (dashed, 미연결) -->
+    <mxCell id="32" value="향후 연동 예정"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#aaaaaa;fontColor=#aaaaaa;fontSize=10;endArrow=open;endFill=0;"
+      edge="1" source="16" target="6" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Log Analytics → CA Env -->
+    <mxCell id="33" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#6c8ebf;"
+      edge="1" source="4" target="5" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>
