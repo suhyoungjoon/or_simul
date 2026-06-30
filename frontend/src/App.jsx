@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import SidePanel from "./components/SidePanel";
-import MapCanvas from "./components/MapCanvas";
+import MapView from "./components/MapView";
 import Timeline  from "./components/Timeline";
 import OrderLookup from "./components/OrderLookup";
 import { SVC_LABEL } from "./utils/dataGenerator";
@@ -196,7 +196,7 @@ export default function App() {
 
               <div style={{display:"flex",gap:14,alignItems:"flex-start"}}>
                 <div style={{flex:1,minWidth:0}}>
-                  {tab === "map"      && <MapCanvas workers={displayWorkers} customers={displayCustomers} assignments={displayAssignments} lookupAddedIds={lookupAddedIds} />}
+                  {tab === "map"      && <MapView />}
                   {tab === "timeline" && <Timeline  workers={displayWorkers} customers={displayCustomers} assignments={displayAssignments} />}
                   {tab === "table"    && <AssignTable workers={displayWorkers} customers={displayCustomers} assignments={displayAssignments} lookupAddedIds={lookupAddedIds} />}
                   {tab === "log"      && <LogView logs={logs} />}
