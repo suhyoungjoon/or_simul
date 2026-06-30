@@ -45,7 +45,7 @@ export default function OrderLookup() {
   };
 
   return (
-    <Card className="bg-surface border-border text-gray-200 max-w-md">
+    <Card className="border-border/50 shadow-none max-w-md">
       <CardHeader>
         <CardTitle className="text-base">🔍 온디맨드 주문 조회</CardTitle>
       </CardHeader>
@@ -62,12 +62,12 @@ export default function OrderLookup() {
           </Button>
         </div>
 
-        {error && <div className="text-sm text-red-400">{error}</div>}
+        {error && <div className="text-sm text-red-500">{error}</div>}
 
         {result && (
-          <div className="border border-border rounded-lg p-3 space-y-1 text-sm">
+          <div className="border border-border/50 rounded-lg p-3 space-y-1 text-sm bg-muted/30">
             <div className="font-bold">{result.name}</div>
-            <div className="text-gray-400">{result.address}</div>
+            <div className="text-muted-foreground">{result.address}</div>
             <div className="flex gap-2 items-center">
               <Badge variant="outline">{SVC_LABEL[result.svc]}</Badge>
               {result.vip && <Badge className="bg-amber-500">VIP</Badge>}

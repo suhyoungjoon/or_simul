@@ -14,23 +14,23 @@ export default function SidePanel() {
   const loading = useStore((s) => s.loading);
 
   return (
-    <Card className="bg-surface border-border text-gray-200">
+    <Card className="border-border/50 shadow-none">
       <CardHeader>
         <CardTitle className="text-base">최적화 설정</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="space-y-1.5">
-          <label className="text-xs text-gray-400">날짜</label>
+          <label className="text-xs text-muted-foreground">날짜</label>
           <input
             type="date"
             value={cfg.date}
             onChange={(e) => updateCfg({ date: e.target.value })}
-            className="w-full bg-background border border-border rounded px-2 py-1.5 text-sm"
+            className="w-full bg-background border border-input rounded px-2 py-1.5 text-sm"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs text-gray-400">구역</label>
+          <label className="text-xs text-muted-foreground">구역</label>
           <Select value={cfg.region} onValueChange={(v) => updateCfg({ region: v })}>
             <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -43,7 +43,7 @@ export default function SidePanel() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs text-gray-400">서비스</label>
+          <label className="text-xs text-muted-foreground">서비스</label>
           <Select value={cfg.svc} onValueChange={(v) => updateCfg({ svc: v })}>
             <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -56,17 +56,17 @@ export default function SidePanel() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs text-gray-400">작업자당 최대 건수: {cfg.maxJobs}</label>
+          <label className="text-xs text-muted-foreground">작업자당 최대 건수: {cfg.maxJobs}</label>
           <Slider min={1} max={15} step={1} value={[cfg.maxJobs]} onValueChange={([v]) => updateCfg({ maxJobs: v })} />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs text-gray-400">동선 최적화 강도: {STRENGTH[cfg.routeWeight]}</label>
+          <label className="text-xs text-muted-foreground">동선 최적화 강도: {STRENGTH[cfg.routeWeight]}</label>
           <Slider min={0} max={3} step={1} value={[cfg.routeWeight]} onValueChange={([v]) => updateCfg({ routeWeight: v })} />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs text-gray-400">작업량 균형 강도: {STRENGTH[cfg.balanceWeight]}</label>
+          <label className="text-xs text-muted-foreground">작업량 균형 강도: {STRENGTH[cfg.balanceWeight]}</label>
           <Slider min={0} max={3} step={1} value={[cfg.balanceWeight]} onValueChange={([v]) => updateCfg({ balanceWeight: v })} />
         </div>
 

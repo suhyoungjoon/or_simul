@@ -37,7 +37,6 @@ export default {
         border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",
-        surface: "#1b1e2b",
       },
       borderRadius: {
         lg: "var(--radius)",

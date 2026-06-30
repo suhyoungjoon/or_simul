@@ -10,7 +10,6 @@ html, body, #root {
 }
 body {
   overflow: hidden;
-  background-color: #141720;
 }
 
 @layer base {

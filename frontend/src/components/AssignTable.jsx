@@ -17,9 +17,9 @@ export default function AssignTable() {
   );
 
   return (
-    <div className="border border-border rounded-lg overflow-hidden">
-      <table className="w-full text-sm text-gray-200">
-        <thead className="bg-background text-gray-400">
+    <div className="border border-border/50 rounded-lg overflow-hidden">
+      <table className="w-full text-sm text-foreground">
+        <thead className="bg-muted/50 text-muted-foreground">
           <tr>
             <th className="px-3 py-2 text-left">작업자</th>
             <th className="px-3 py-2 text-left">고객</th>
@@ -33,12 +33,12 @@ export default function AssignTable() {
             const c = displayCustomers.find((c) => c.id === a.customer_id);
             const w = wMap[a.worker_id];
             return (
-              <tr key={a.customer_id} className="border-t border-border">
+              <tr key={a.customer_id} className="border-t border-border/50">
                 <td className="px-3 py-2">{w?.name}</td>
                 <td className="px-3 py-2 flex items-center gap-2">
                   {c?.name}
                   {lookupAddedIds.has(a.customer_id) && (
-                    <Badge variant="outline" className="text-cyan-400 border-cyan-400">🔍 온디맨드 조회</Badge>
+                    <Badge variant="outline" className="text-cyan-600 border-cyan-500">🔍 온디맨드 조회</Badge>
                   )}
                   {c?.vip && <Badge className="bg-amber-500">VIP</Badge>}
                 </td>

@@ -37,7 +37,7 @@ export default function MapView() {
     <div className="relative rounded-lg overflow-hidden border border-border bg-background">
       <MapContainer center={SEOUL_CENTER} zoom={12} style={{ height: 480, width: "100%" }}>
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
 
@@ -66,7 +66,7 @@ export default function MapView() {
 
         {displayCustomers.filter((c) => c.lat && (!visibleCustomerIds || visibleCustomerIds.has(c.id))).map((c) => {
           const a = aMap[c.id];
-          const color = a ? a.worker.color : "#444444";
+          const color = a ? a.worker.color : "#aaaaaa";
           const isLookup = lookupAddedIds.has(c.id);
           return (
             <CircleMarker
@@ -100,7 +100,7 @@ export default function MapView() {
         ))}
       </MapContainer>
 
-      <div className="absolute top-3 right-3 bg-surface/90 border border-border rounded-lg p-3 text-xs text-gray-300 space-y-1 max-w-[180px]">
+      <div className="absolute top-3 right-3 bg-background/90 border border-border/50 rounded-lg p-3 text-xs text-foreground shadow-sm space-y-1 max-w-[180px]">
         {workers.map((w) => (
           <div key={w.id} className="flex items-center gap-2">
             <span className="w-4 h-[3px] rounded" style={{ background: w.color }} />
@@ -115,7 +115,7 @@ export default function MapView() {
           <span className="w-3.5 h-3.5 rounded-full border" style={{ borderColor: "#67dff0", borderStyle: "dashed" }} />
           🔍 온디맨드 조회로 추가됨
         </div>
-        <div className="border-t border-border pt-2 mt-1 space-y-1">
+        <div className="border-t border-border/50 pt-2 mt-1 space-y-1">
           {Object.entries(REGION_META).map(([key, r]) => (
             <div key={key} className="flex items-center gap-2 text-[#9db4ff]">
               <span className="w-3 h-3 rounded-full border" style={{ borderColor: "#9db4ff", borderStyle: "dashed" }} />

@@ -31,15 +31,15 @@ export default function App() {
   const logs = result?.logs ?? [];
 
   return (
-    <div className="h-full w-full flex bg-background text-gray-100">
-      <aside className="w-72 p-4 space-y-4 overflow-y-auto border-r border-border">
+    <div className="h-full w-full flex bg-background text-foreground">
+      <aside className="w-72 p-4 space-y-4 overflow-y-auto border-r border-border/50 bg-muted/30">
         <SidePanel />
         <WorkerFilterList />
       </aside>
 
       <main className="flex-1 p-4 overflow-y-auto">
         {error && (
-          <div className="bg-red-500/10 border border-red-500 text-red-300 rounded-lg px-4 py-2 mb-4 text-sm">
+          <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-2 mb-4 text-sm">
             {error}
           </div>
         )}
@@ -49,34 +49,32 @@ export default function App() {
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`px-3 py-1.5 rounded text-sm ${tab === t.key ? "bg-accent text-white" : "bg-surface text-gray-400 hover:text-gray-200"}`}
+              className={`px-3 py-1.5 rounded text-sm transition-colors ${tab === t.key ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"}`}
             >
               {t.label}
             </button>
           ))}
         </div>
 
-        {!dataLoaded && <div className="text-gray-400">데이터 로딩 중...</div>}
+        {!dataLoaded && <div className="text-muted-foreground">데이터 로딩 중...</div>}
 
         {dataLoaded && tab === "map" && <MapView />}
         {dataLoaded && tab === "timeline" && <Timeline />}
         {dataLoaded && tab === "table" && <AssignTable />}
         {dataLoaded && tab === "log" && (
           <>
-            <div style={{background:"#1a1d27",border:"1px solid #2e3250",borderRadius:10,
-              padding:"12px 14px",fontFamily:"monospace",fontSize:11,
-              color:"#8b91b5",maxHeight:320,overflowY:"auto"}}>
+            <div className="bg-muted/50 border border-border/50 rounded-lg p-3 font-mono text-xs text-muted-foreground max-h-80 overflow-y-auto">
               {logs.length === 0 && (
-                <div className="text-gray-500">최적화를 실행하면 로그가 표시됩니다.</div>
+                <div>최적화를 실행하면 로그가 표시됩니다.</div>
               )}
               {logs.map((l, i) => (
                 <div key={i} style={{marginBottom:4,lineHeight:1.5}}>
-                  <span style={{color:"#5a6085"}}>[{l.time}]</span>{" "}
-                  <span style={{color:logColors[l.type]||"#8b91b5"}}>{l.msg}</span>
+                  <span className="text-muted-foreground/60">[{l.time}]</span>{" "}
+                  <span style={{color:logColors[l.type]}}>{l.msg}</span>
                 </div>
               ))}
             </div>
-            <div style={{marginTop:14,color:"#5a6085",fontSize:11,padding:"0 2px"}}>
+            <div className="mt-3 text-xs text-muted-foreground/60 px-0.5">
               실제 OR-Tools(VRPTW 솔버)는 이 과정을 수리 최적화로 수행합니다.<br/>
               이 데모는 스코어링 기반 근사 알고리즘으로 동일한 개념을 시뮬레이션합니다.
             </div>
