@@ -212,7 +212,7 @@ export default function App() {
               </div>
             </>
           )}
-          {tab === "lookup" && <OrderLookup apiBase={API} onAddToOptimization={mergeCustomer} />}
+          {tab === "lookup" && <OrderLookup />}
         </div>
       </div>
     </div>

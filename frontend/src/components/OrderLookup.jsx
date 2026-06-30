@@ -1,85 +1,84 @@
 import { useState } from "react";
+import { useStore } from "../store";
+import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Input } from "./ui/input";
+import { Badge } from "./ui/badge";
+import { SVC_LABEL } from "../utils/dataGenerator";
 
-const SVC_LABEL = { internet:'인터넷', iptv:'IPTV', combo:'결합' };
+const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-export default function OrderLookup({ apiBase, onAddToOptimization }) {
+export default function OrderLookup() {
+  const mergeCustomer = useStore((s) => s.mergeCustomer);
   const [orderId, setOrderId] = useState("");
-  const [result,  setResult]  = useState(null);
-  const [error,   setError]   = useState(null);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [added,   setAdded]   = useState(false);
+  const [added, setAdded] = useState(false);
 
-  async function handleLookup() {
-    if (!orderId.trim()) return;
-    setLoading(true); setError(null); setResult(null); setAdded(false);
+  const handleLookup = async () => {
+    if (!orderId) return;
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    setAdded(false);
     try {
-      const res = await fetch(`${apiBase}/legacy/orders/${encodeURIComponent(orderId.trim())}`);
-      if (!res.ok) throw new Error(`조회 실패 (${res.status})`);
-      setResult(await res.json());
+      const res = await fetch(`${API}/legacy/orders/${orderId}`);
+      if (!res.ok) {
+        if (res.status === 404) throw new Error("해당 주문번호를 찾을 수 없습니다");
+        if (res.status === 503) throw new Error("레거시 시스템에 연결할 수 없습니다");
+        throw new Error("조회 중 오류가 발생했습니다");
+      }
+      const data = await res.json();
+      setResult(data);
     } catch (e) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }
-
-  function handleAdd() {
-    if (!result) return;
-    onAddToOptimization(result);
-    setAdded(true);
-  }
-
-  const inputStyle = {
-    background:"#232636", border:"1px solid #2e3250", color:"#e8eaf6",
-    padding:"8px 10px", borderRadius:6, fontSize:13, flex:1,
   };
-  const btnStyle = {
-    padding:"8px 16px", background:"#4f6ef7", color:"#fff", border:"none",
-    borderRadius:6, fontSize:13, fontWeight:600, cursor:"pointer",
+
+  const handleAdd = () => {
+    if (!result) return;
+    mergeCustomer(result);
+    setAdded(true);
   };
 
   return (
-    <div style={{maxWidth:480}}>
-      <div style={{display:"flex",gap:8,marginBottom:16}}>
-        <input
-          style={inputStyle}
-          placeholder="주문 ID 입력"
-          value={orderId}
-          onChange={e=>setOrderId(e.target.value)}
-          onKeyDown={e=>{ if (e.key === "Enter") handleLookup(); }}
-        />
-        <button style={btnStyle} onClick={handleLookup} disabled={loading}>
-          {loading ? "조회 중..." : "조회"}
-        </button>
-      </div>
-
-      {error && (
-        <div style={{background:"rgba(239,68,68,.1)",border:"1px solid rgba(239,68,68,.3)",
-          borderRadius:8,padding:"10px 14px",color:"#ef4444",fontSize:12,marginBottom:12}}>
-          ⚠️ {error}
+    <Card className="bg-surface border-border text-gray-200 max-w-md">
+      <CardHeader>
+        <CardTitle className="text-base">🔍 온디맨드 주문 조회</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex gap-2">
+          <Input
+            placeholder="주문번호 (예: 101)"
+            value={orderId}
+            onChange={(e) => setOrderId(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleLookup()}
+          />
+          <Button onClick={handleLookup} disabled={loading}>
+            {loading ? "조회 중..." : "조회"}
+          </Button>
         </div>
-      )}
 
-      {result && (
-        <div style={{background:"#1a1d27",border:"1px solid #2e3250",borderRadius:10,padding:16}}>
-          <div style={{fontSize:14,fontWeight:600,marginBottom:8}}>{result.name}{result.vip ? " ⭐" : ""}</div>
-          <div style={{fontSize:12,color:"#8b91b5",lineHeight:1.6}}>
-            <div>주문 ID: {result.id}</div>
-            <div>서비스: {SVC_LABEL[result.svc] || result.svc}</div>
-            <div>구역: {result.region}</div>
-            <div>희망 시간대: {result.time_window === "morning" ? "오전" : "오후"}</div>
-            <div>연체 여부: {result.overdue ? "예" : "아니오"}</div>
+        {error && <div className="text-sm text-red-400">{error}</div>}
+
+        {result && (
+          <div className="border border-border rounded-lg p-3 space-y-1 text-sm">
+            <div className="font-bold">{result.name}</div>
+            <div className="text-gray-400">{result.address}</div>
+            <div className="flex gap-2 items-center">
+              <Badge variant="outline">{SVC_LABEL[result.svc]}</Badge>
+              {result.vip && <Badge className="bg-amber-500">VIP</Badge>}
+              {result.overdue && <Badge variant="destructive">연체</Badge>}
+            </div>
+            <Button size="sm" className="mt-2" disabled={added} onClick={handleAdd}>
+              {added ? "추가됨" : "최적화 대상에 추가"}
+            </Button>
           </div>
-          <button
-            style={{...btnStyle, marginTop:12, width:"100%",
-              background: added ? "#22c55e" : "#4f6ef7"}}
-            onClick={handleAdd}
-            disabled={added}
-          >
-            {added ? "✓ 추가됨" : "최적화 대상에 추가"}
-          </button>
-        </div>
-      )}
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
